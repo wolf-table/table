@@ -1,0 +1,45 @@
+@import '../style.base.less';
+
+.@{style-prefix}-scrollbar {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #f4f5f8;
+  opacity: 0.9;
+  z-index: 12;
+
+  &.horizontal {
+    height: 15px;
+    right: 15px;
+    overflow-x: scroll;
+    overflow-y: hidden;
+
+    .content {
+      height: 1px;
+      background: #ddd;
+    }
+  }
+
+  &.vertical {
+    width: 15px;
+    bottom: 0;
+    overflow-x: hidden;
+    overflow-y: scroll;
+
+    .content {
+      width: 1px;
+      background: #ddd;
+    }
+  }
+}
+
+.@{style-prefix}-scrollbar-corner {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  border-left: 1px solid #ddd;
+  border-top: 1px solid #ddd;
+  background-color: #f4f5f8;
+}
