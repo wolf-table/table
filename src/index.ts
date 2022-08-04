@@ -15,6 +15,7 @@ import {
   Scroll,
   Cells,
   FormulaFunc,
+  DataCell,
 } from './data';
 import HElement, { h } from './element';
 import Scrollbar from './scrollbar';
@@ -229,6 +230,17 @@ export default class Table {
     return this;
   }
 
+  cell(row: number, col: number): DataCell;
+  cell(row: number, col: number, value: DataCell): Table;
+  cell(row: number, col: number, value?: DataCell): any {
+    const { _cells } = this;
+    if (value) {
+      _cells.set(row, col, value)
+      return this;
+    }
+    return _cells.get(row, col)
+  }
+
   render() {
     // console.log('scroll:', this._data.scroll);
     this._render
@@ -244,7 +256,7 @@ export default class Table {
       .row((index) => row(this._data, index))
       .col((index) => col(this._data, index))
       .cell((r, c) => {
-        return this._cells.cell(r, c);
+        return this.cell(r, c);
       })
       .render();
 
@@ -260,6 +272,7 @@ export default class Table {
       });
       tableResizeScrollbars(this);
     }
+    return this;
   }
 
   static create(

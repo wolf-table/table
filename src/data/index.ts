@@ -33,7 +33,7 @@ export type TableData = {
   colWidth: number;
   scroll: [number, number]; // cols, rows
   style: CellStyle;
-  styles?: CellStyle[];
+  styles?: Partial<CellStyle>[];
   freeze?: string;
   merges?: string[];
   cells?: DataIndexCell[];

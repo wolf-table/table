@@ -1,12 +1,5 @@
 import { DataIndexCell, DataCell, TableData, FormulaFunc } from '.';
 
-function updateMap(map: Map<Number, Number[]>, key: number, value: number) {
-  if (!map.has(key)) {
-    map.set(key, []);
-  }
-  map.get(key)?.push(value);
-}
-
 export default class Cells {
   _: DataIndexCell[] = [];
   _indexes = new Map();
@@ -27,29 +20,22 @@ export default class Cells {
     }
   }
 
-  cell(row: number, col: number): DataCell {
-    const indexCell = this.get(row, col);
-    if (indexCell) {
-      const [, , cell] = indexCell;
-      return cell;
-    }
-    return null;
-  }
-
-  get(row: number, col: number): DataIndexCell | null {
+  get(row: number, col: number): DataCell | null {
     const { _indexes } = this;
     if (_indexes.has(row)) {
       const index = _indexes.get(row).get(col);
-      if (index !== undefined) return this._[index];
+      if (index !== undefined) {
+        return this._[index][2]
+      }
       return null;
     }
     return null;
   }
 
   set(row: number, col: number, cell: DataCell) {
-    const old = this.cell(row, col);
+    const old = this.get(row, col);
     if (old === null || old === undefined) {
-      const index = this._.push([row, col, cell]);
+      const index = this._.push([row, col, cell]) - 1;
       this.updateIndex(row, col, index);
       this.addFormula(cell, index);
     } else {
