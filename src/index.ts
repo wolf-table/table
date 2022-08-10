@@ -16,6 +16,8 @@ import {
   Cells,
   FormulaFunc,
   DataCell,
+  addStyle,
+  clearStyles,
 } from './data';
 import HElement, { h } from './element';
 import Scrollbar from './scrollbar';
@@ -230,15 +232,23 @@ export default class Table {
     return this;
   }
 
+  addStyle(value: Partial<CellStyle>) {
+    return addStyle(this._data, value);
+  }
+
+  clearStyles() {
+    return clearStyles(this._data);
+  }
+
   cell(row: number, col: number): DataCell;
   cell(row: number, col: number, value: DataCell): Table;
   cell(row: number, col: number, value?: DataCell): any {
     const { _cells } = this;
     if (value) {
-      _cells.set(row, col, value)
+      _cells.set(row, col, value);
       return this;
     }
-    return _cells.get(row, col)
+    return _cells.get(row, col);
   }
 
   render() {
