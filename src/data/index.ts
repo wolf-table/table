@@ -4,6 +4,7 @@ import Scroll from './scroll';
 
 import { isMerged, merge, unmerge, rangeUnoinMerges } from './merge';
 import { addStyle, clearStyles } from './style';
+import { addBorder, clearBorder, clearBorders } from './border';
 import { col, colWidth, colsWidth } from './col';
 import { row, rowHeight, rowsHeight } from './row';
 
@@ -80,6 +81,9 @@ export {
   rangeUnoinMerges,
   addStyle,
   clearStyles,
+  addBorder,
+  clearBorder,
+  clearBorders,
   col,
   colWidth,
   colsWidth,

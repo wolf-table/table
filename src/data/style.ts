@@ -2,7 +2,7 @@ import { TableData } from '.';
 import { CellStyle } from 'table-render';
 import { equals } from '../helper';
 
-export function addStyle(t: TableData, value: Partial<CellStyle>) {
+export function addStyle(t: TableData, value: Partial<CellStyle>): number {
   if (!t.styles) t.styles = [];
   if (value) {
     for (let i = 0; i < t.styles.length; i += 1) {

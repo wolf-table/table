@@ -1,0 +1,31 @@
+import { Range, Rect } from 'table-render';
+import { TableData } from '../data';
+import HElement from '../element';
+declare type Placement = 'all' | 'row-header' | 'col-header' | 'body';
+export default class Selector {
+    ranges: Range[];
+    rowHeaderRanges: Range[];
+    colHeaderRanges: Range[];
+    _startRange: Range | null;
+    _placement: Placement;
+    _data: TableData;
+    _areas: HElement[];
+    _rowHeaderAreas: HElement[];
+    _colHeaderAreas: HElement[];
+    _: HElement | null;
+    _corner: HElement;
+    _targets: HElement[];
+    _targetChildren: Node[][];
+    constructor(data: TableData);
+    placement(value: Placement): this;
+    addRange(row: number, col: number, clear?: boolean): this;
+    unionRange(row: number, col: number): this;
+    clearRanges(): this;
+    addAreaRect(rangeIndex: number, { x, y, width, height }: Rect): this;
+    addRowHeaderAreaRect({ x, y, width, height }: Rect): this;
+    addColHeaderAreaRect({ x, y, width, height }: Rect): this;
+    addTarget(target: HElement): this;
+    clearTargets(): this;
+    clearAreas(): void;
+}
+export {};

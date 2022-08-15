@@ -1,5 +1,14 @@
 import './style.index.less';
-import TableRender, { stringAt, CellStyle, ColHeader, RowHeader, Rect, Range, Area } from 'table-render';
+import TableRender, {
+  stringAt,
+  CellStyle,
+  ColHeader,
+  RowHeader,
+  Rect,
+  Range,
+  Area,
+  Border,
+} from 'table-render';
 import {
   defaultData,
   TableData,
@@ -18,6 +27,9 @@ import {
   DataCell,
   addStyle,
   clearStyles,
+  addBorder,
+  clearBorder,
+  clearBorders,
 } from './data';
 import HElement, { h } from './element';
 import Scrollbar from './scrollbar';
@@ -237,7 +249,23 @@ export default class Table {
   }
 
   clearStyles() {
-    return clearStyles(this._data);
+    clearStyles(this._data);
+    return this;
+  }
+
+  addBorder(value: Border) {
+    addBorder(this._data, value);
+    return this;
+  }
+
+  clearBorder(value: string) {
+    clearBorder(this._data, value);
+    return this;
+  }
+
+  clearBorders() {
+    clearBorders(this._data);
+    return this;
   }
 
   cell(row: number, col: number): DataCell;
@@ -261,6 +289,7 @@ export default class Table {
       .merges(this._data.merges)
       .freeze(this._data.freeze)
       .styles(this._data.styles)
+      .borders(this._data.borders)
       .rows(this._data.rows.len)
       .cols(this._data.cols.len)
       .row((index) => row(this._data, index))

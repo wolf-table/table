@@ -14,6 +14,7 @@ const t = WolfTable.create(
   .freeze('D5')
   .merge('F10:G11')
   .merge('I10:K11')
+  .addBorder(['E8:L12', 'all', 'thick', '#21ba45'])
   .formula((v) => `${v}-formula`)
   .data({
     styles: [

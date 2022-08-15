@@ -1,24 +1,34 @@
-export default class Element {
+export declare type CSSAttrs = {
+    left?: number;
+    top?: number;
+    width?: number;
+    height?: number;
+    position?: string;
+};
+export default class HElement {
     _: HTMLElement;
     _data: Map<any, any>;
-    constructor(tag: string | HTMLElement, className?: string | string[] | Object);
+    constructor(tag: string | Node, className?: string | string[] | Object);
     data(key: string): any;
-    data(key: string, value: any): Element;
-    on(eventName: string, handler: (evt: Event) => void): this;
+    data(key: string, value: any): HElement;
+    on(eventName: string, handler: (evt: any) => void): this;
     attr(key: string): string;
-    attr(key: string, value: string): Element;
+    attr(key: string, value: string): HElement;
     css(key: string): string;
-    css(key: string, value: string): Element;
+    css(props: CSSAttrs): HElement;
+    css(key: string, value: string): HElement;
     rect(): DOMRect;
-    show(): this;
+    show(flag?: boolean): this;
     hide(): this;
     scrollx(): number;
-    scrollx(value: number): Element;
+    scrollx(value: number): HElement;
     scrolly(): number;
-    scrolly(value: number): Element;
-    after(...nodes: (Element | Node | string)[]): this;
-    before(...nodes: (Element | Node | string)[]): this;
-    append(...nodes: (Element | Node | string)[]): this;
-    remove(...nodes: (Element | Node)[]): void;
+    scrolly(value: number): HElement;
+    after(...nodes: (HElement | Node | string)[]): this;
+    before(...nodes: (HElement | Node | string)[]): this;
+    append(...nodes: (HElement | Node | string)[]): this;
+    remove(...nodes: (HElement | Node)[]): void;
+    cloneNode(): Node;
+    get firstChild(): HElement | null;
 }
-export declare function h(tag: string | HTMLElement, className?: string | string[] | Object): Element;
+export declare function h(tag: string | HTMLElement, className?: string | string[] | Object): HElement;
