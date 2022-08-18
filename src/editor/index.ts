@@ -53,7 +53,7 @@ export default class Editor {
   value(): string;
   value(text: string): void;
   value(text?: string) {
-    if (text) {
+    if (text !== undefined) {
       this._value = text;
       this._text.value(text);
       resizeSize(this);
