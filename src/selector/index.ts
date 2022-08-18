@@ -5,11 +5,12 @@ import HElement, { h } from '../element';
 
 type Placement = 'all' | 'row-header' | 'col-header' | 'body';
 export default class Selector {
+  oldRanges: Range[] = [];
   ranges: Range[] = [];
   rowHeaderRanges: Range[] = [];
   colHeaderRanges: Range[] = [];
 
-  _startRange: Range | null = null;
+  startRange: Range | null = null;
   _placement: Placement = 'body';
   _data: TableData;
 
@@ -36,7 +37,7 @@ export default class Selector {
     const range = rangeUnoinMerges(this._data, Range.create(row, col));
     if (clear) this.clearRanges();
     this.ranges.push(range);
-    this._startRange = range;
+    this.startRange = range;
 
     updateHeaderRanges(this);
     return this;
@@ -44,9 +45,9 @@ export default class Selector {
 
   unionRange(row: number, col: number) {
     const range = Range.create(row, col);
-    const { ranges, _startRange } = this;
-    if (_startRange) {
-      const newRange = _startRange.union(range);
+    const { ranges, startRange } = this;
+    if (startRange) {
+      const newRange = startRange.union(range);
       ranges.splice(-1, 1, rangeUnoinMerges(this._data, newRange));
       updateHeaderRanges(this);
     }
@@ -54,11 +55,13 @@ export default class Selector {
   }
 
   clearRanges() {
-    [this.ranges].forEach((it) => (it.length = 0));
+    this.oldRanges = this.ranges;
+    this.ranges = [];
     return this;
   }
 
-  addAreaRect(rangeIndex: number, { x, y, width, height }: Rect) {
+  addAreaRect(rangeIndex: number, rect: Rect) {
+    const { x, y, width, height } = rect;
     this._areas.push(
       h('div', `${stylePrefix}-selector-area`)
         .css({
@@ -74,10 +77,10 @@ export default class Selector {
     if (last) {
       this._ = h('div', `${stylePrefix}-selector`)
         .css({
-          left: x,
-          top: y,
-          width: width - borderWidth * 2,
-          height: height - borderWidth * 2,
+          left: x - borderWidth / 2,
+          top: y - borderWidth / 2,
+          width: width - borderWidth,
+          height: height - borderWidth,
         })
         .show();
 

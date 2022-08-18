@@ -21,6 +21,7 @@ import {
   merge,
   unmerge,
   isMerged,
+  rangeUnoinMerges,
   Scroll,
   Cells,
   FormulaFunc,
@@ -38,6 +39,7 @@ import { bind, unbind } from './event';
 import Selector from './selector';
 import Overlayer from './overlayer';
 import { stylePrefix, borderWidth } from './config';
+import Editor from './editor';
 
 export type TableOptions = {
   rowHeight?: number;
@@ -52,6 +54,7 @@ export type TableOptions = {
   scrollable?: boolean;
   resizable?: boolean;
   selectable?: boolean;
+  editable?: boolean;
 };
 
 export default class Table {
@@ -95,6 +98,9 @@ export default class Table {
   // resizer
   _rowResizer: Resizer | null = null;
   _colResizer: Resizer | null = null;
+
+  // editor
+  _editor: Editor | null = null;
 
   _selector: Selector | null = null;
   _overlayer: Overlayer;
@@ -151,12 +157,18 @@ export default class Table {
       this._selector = new Selector(this._data);
     }
 
+    if (options?.editable) {
+      tableInitEditor(this);
+    }
+
     // canvas bind wheel
     tableCanvasBindWheel(this, hcanvas);
     // canvas bind mousemove
     tableCanvasBindMousemove(this, hcanvas);
     // canvas bind mousedown
     tableCanvasBindMousedown(this, hcanvas);
+    // canvas bind dbclick
+    tableCanvasBindDblclick(this, hcanvas);
   }
 
   data(): TableData;
@@ -326,6 +338,19 @@ export default class Table {
 
 // methods ---- start ----
 
+function setSelectedRangesValue(t: Table, value: string) {
+  const { _selector } = t;
+  if (_selector) {
+    const { oldRanges, ranges } = _selector;
+    (oldRanges.length > 0 ? oldRanges : ranges).forEach((range) => {
+      range.each((r, c) => {
+        t.cell(r, c, { value });
+      });
+    });
+    t.render();
+  }
+}
+
 function tableResetSelector(t: Table) {
   const { _selector, _overlayer, _container, _rowHeader, _colHeader } = t;
   const { viewport } = t._render;
@@ -476,9 +501,18 @@ function tableInitResizers(t: Table) {
   );
 }
 
+function tableInitEditor(t: Table) {
+  t._editor = new Editor(t._container, t._width, t._height, `13px`, 'Roboto');
+  const { _editor } = t;
+  _editor.inputChange((text) => {});
+  _editor.moveChange((direction, value) => {
+    setSelectedRangesValue(t, value);
+  });
+}
+
 function tableCanvasBindMousedown(t: Table, hcanvas: HElement) {
   hcanvas.on('mousedown', (evt) => {
-    const { _selector, _render, _data } = t;
+    const { _selector, _render, _editor } = t;
     const { viewport } = _render;
     let cache = { row: 0, col: 0 };
     if (_selector && viewport) {
@@ -522,6 +556,10 @@ function tableCanvasBindMousedown(t: Table, hcanvas: HElement) {
         }
       }
     }
+
+    if (_editor) {
+      _editor.finished();
+    }
   });
 }
 
@@ -542,10 +580,8 @@ function tableCanvasBindMousemove(t: Table, hcanvas: HElement) {
         }
       }
       if (_colResizer && _colHeader.height > 0) {
-        // console.log('col-resizer:');
         if (offsetY < _colHeader.height && offsetX > _rowHeader.width) {
           const cell = viewport.cellAt(offsetX, offsetY);
-          // console.log('cell::', cell);
           if (cell) _colResizer.show(cell);
         } else {
           _colResizer.hide();
@@ -571,6 +607,49 @@ function tableCanvasBindWheel(t: Table, hcanvas: HElement) {
         const nvalue = _vScrollbar.value + deltaY;
         if (_vScrollbar.test(nvalue)) {
           _vScrollbar.scroll(nvalue);
+        }
+      }
+    }
+  });
+}
+
+function tableCanvasBindDblclick(t: Table, hcanvas: HElement) {
+  hcanvas.on('dblclick.prevent', (evt) => {
+    const { _selector, _editor, _rowHeader, _colHeader } = t;
+    const { viewport } = t._render;
+    const { offsetX, offsetY } = evt;
+    if (_selector && _editor && viewport) {
+      _editor.hide();
+      if (offsetX > _rowHeader.width && offsetY > _colHeader.height) {
+        const vcell = viewport.cellAt(offsetX, offsetY);
+        if (vcell) {
+          const { row, col } = vcell;
+          const range = Range.create(row, col);
+          const nRange = rangeUnoinMerges(t._data, range);
+          if (range !== nRange) {
+            const { _placement } = _selector;
+            if (_placement === 'body') {
+              for (let area of viewport.areas) {
+                if (nRange.intersects(area.range)) {
+                  const rect = area.rect(nRange);
+                  rect.x += area.x;
+                  rect.y += area.y;
+                  _editor.show(rect);
+                  break;
+                }
+              }
+            }
+          } else {
+            _editor.show(vcell);
+          }
+        }
+      }
+      if (_selector && _selector.startRange) {
+        const { startRow, startCol } = _selector.startRange;
+        const cell = t.cell(startRow, startCol);
+        if (cell) {
+          const text = cell instanceof Object ? cell.value : cell;
+          _editor.value(text + '');
         }
       }
     }

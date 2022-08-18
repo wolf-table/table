@@ -25,7 +25,7 @@ export default class Cells {
     if (_indexes.has(row)) {
       const index = _indexes.get(row).get(col);
       if (index !== undefined) {
-        return this._[index][2]
+        return this._[index][2];
       }
       return null;
     }

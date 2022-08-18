@@ -37,6 +37,10 @@ export default class HElement {
     }
   }
 
+  element(): any {
+    return this._;
+  }
+
   data(key: string): any;
   data(key: string, value: any): HElement;
   data(key: string, value?: any) {
@@ -61,6 +65,26 @@ export default class HElement {
         }
       }
     });
+    return this;
+  }
+
+  value(): string;
+  value(v: string): HElement;
+  value(v?: string): any {
+    if (v !== undefined) {
+      (this._ as any).value = v;
+      return this;
+    }
+    return (this._ as any).value;
+  }
+
+  textContent(v: string) {
+    this._.textContent = v;
+    return this;
+  }
+
+  html(v: string) {
+    this._.innerHTML = v;
     return this;
   }
 
@@ -162,4 +186,20 @@ export default class HElement {
 
 export function h(tag: string | HTMLElement, className?: string | string[] | Object) {
   return new HElement(tag, className);
+}
+
+export function textWidth(text: string, fontSize: string, fontFamily: string) {
+  const el = document.createElement('span');
+  el.style.display = 'inline-block';
+  el.style.position = 'absolute';
+  el.style.zIndex = '-900';
+  el.style.whiteSpace = 'nowrap';
+  el.style.fontSize = fontSize;
+  el.style.fontFamily = fontFamily;
+  el.textContent = text;
+  document.body.appendChild(el);
+  const width = el.clientWidth;
+  console.log(el.clientWidth);
+  document.body.removeChild(el);
+  return width;
 }

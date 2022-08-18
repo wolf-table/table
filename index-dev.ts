@@ -8,13 +8,14 @@ const t = WolfTable.create(
     scrollable: true,
     resizable: true,
     selectable: true,
+    editable: true,
     rows: 1000,
   }
 )
   .freeze('D5')
   .merge('F10:G11')
   .merge('I10:K11')
-  .addBorder(['E8:L12', 'all', 'thick', '#21ba45'])
+  .addBorder(['E8:L12', 'all', 'medium', '#21ba45'])
   .formula((v) => `${v}-formula`)
   .data({
     styles: [
