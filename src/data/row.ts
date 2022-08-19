@@ -1,8 +1,15 @@
-import { TableData } from '.';
+import { DataRow, TableData } from '.';
 import { sum } from '../helper';
 
-export function row(data: TableData, index: number) {
-  return data.rows[index] || { height: data.rowHeight };
+export function row(data: TableData, index: number): DataRow;
+export function row(data: TableData, index: number, value: Partial<DataRow>): DataRow;
+export function row(data: TableData, index: number, value?: Partial<DataRow>): DataRow {
+  const oldValue = data.rows[index] || { height: data.rowHeight };
+  if (value) {
+    return (data.rows[index] = Object.assign(oldValue, value));
+  } else {
+    return oldValue;
+  }
 }
 
 export function rowHeight(data: TableData, index: number): number;

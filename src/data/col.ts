@@ -1,8 +1,15 @@
-import { TableData } from '.';
+import { DataCol, TableData } from '.';
 import { sum } from '../helper';
 
-export function col(data: TableData, index: number) {
-  return data.cols[index] || { width: data.colWidth };
+export function col(data: TableData, index: number): DataCol;
+export function col(data: TableData, index: number, value: Partial<DataCol>): DataCol;
+export function col(data: TableData, index: number, value?: Partial<DataCol>): any {
+  const oldValue = data.cols[index] || { width: data.colWidth };
+  if (value) {
+    return (data.cols[index] = Object.assign(oldValue, value));
+  } else {
+    return oldValue;
+  }
 }
 
 export function colWidth(data: TableData, index: number): number;

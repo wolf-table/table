@@ -1,6 +1,6 @@
 import { Range, Rect } from 'table-render';
 import { stylePrefix, borderWidth } from '../config';
-import { rangeUnoinMerges, TableData } from '../data';
+import { rangeUnoinMerges, TableData, row, col } from '../data';
 import HElement, { h } from '../element';
 
 type Placement = 'all' | 'row-header' | 'col-header' | 'body';
@@ -34,9 +34,9 @@ export default class Selector {
     return this;
   }
 
-  addRange(row: number, col: number, clear: boolean = true) {
-    this.focus = [row, col];
-    const range = rangeUnoinMerges(this._data, Range.create(row, col));
+  addRange(r: number, c: number, clear: boolean = true) {
+    this.focus = [r, c];
+    const range = rangeUnoinMerges(this._data, Range.create(r, c));
     if (clear) this.clearRanges();
     this.ranges.push(range);
     this.focusRange = range;
@@ -45,8 +45,8 @@ export default class Selector {
     return this;
   }
 
-  unionRange(row: number, col: number) {
-    const range = Range.create(row, col);
+  unionRange(r: number, c: number) {
+    const range = Range.create(r, c);
     const { ranges, focusRange } = this;
     if (focusRange) {
       const newRange = focusRange.union(range);
@@ -66,17 +66,37 @@ export default class Selector {
     const { focusRange } = this;
     if (focusRange && step > 0) {
       const { startRow, startCol, endRow, endCol } = focusRange;
-      let [row, col] = this.focus;
+      const { _data } = this;
+      const { rows, cols } = _data;
+
+      const getShowRowIndex = (index: number, offset: number) => {
+        for (;;) {
+          const r = row(_data, index);
+          if (r && r.hide) index += offset;
+          else return index;
+        }
+      };
+      const getShowColIndex = (index: number, offset: number) => {
+        for (;;) {
+          const r = col(_data, index);
+          if (r && r.hide) index += offset;
+          else return index;
+        }
+      };
+
+      let [r, c] = this.focus;
       if (type === 'up') {
-        row = startRow - step;
+        r = getShowRowIndex(startRow - step, -1);
       } else if (type === 'down') {
-        row = endRow + step;
+        r = getShowRowIndex(endRow + step, 1);
       } else if (type === 'left') {
-        col = startCol - step;
+        c = getShowColIndex(startCol - step, -1);
       } else if (type === 'right') {
-        col = endCol + step;
+        c = getShowColIndex(endCol + step, 1);
       }
-      this.addRange(row, col, true);
+      if (r >= 0 && r < rows.len - 1 && c >= 0 && c < cols.len - 1) {
+        this.addRange(r, c, true);
+      }
     }
   }
 

@@ -31,6 +31,8 @@ import {
   addBorder,
   clearBorder,
   clearBorders,
+  DataRow,
+  DataCol,
 } from './data';
 import HElement, { h } from './element';
 import Scrollbar from './scrollbar';
@@ -231,14 +233,44 @@ export default class Table {
     return this;
   }
 
-  rowHeight(index: number, value: number) {
-    rowHeight(this._data, index, value);
-    return this;
+  row(index: number): DataRow;
+  row(index: number, value: Partial<DataRow>): Table;
+  row(index: number, value?: Partial<DataRow>): any {
+    if (value) {
+      row(this._data, index, value);
+      return this;
+    }
+    return row(this._data, index);
   }
 
-  colWidth(index: number, value: number) {
-    colWidth(this._data, index, value);
-    return this;
+  rowHeight(index: number): number;
+  rowHeight(index: number, value: number): Table;
+  rowHeight(index: number, value?: number): any {
+    if (value) {
+      rowHeight(this._data, index, value);
+      return this;
+    }
+    return rowHeight(this._data, index);
+  }
+
+  col(index: number): DataCol;
+  col(index: number, value: Partial<DataCol>): Table;
+  col(index: number, value?: Partial<DataCol>): any {
+    if (value) {
+      col(this._data, index, value);
+      return this;
+    }
+    return col(this._data, index);
+  }
+
+  colWidth(index: number): number;
+  colWidth(index: number, value: number): Table;
+  colWidth(index: number, value?: number): any {
+    if (value) {
+      colWidth(this._data, index, value);
+      return this;
+    }
+    return colWidth(this._data, index);
   }
 
   colsWidth(min: number, max: number) {
