@@ -136,7 +136,8 @@ export default class Table {
     }
 
     const canvasElement = document.createElement('canvas');
-    const hcanvas = h(canvasElement);
+    // tabIndex for trigger keydown event
+    const hcanvas = h(canvasElement).attr('tabIndex', '1');
     this._container.append(canvasElement);
     this._render = new TableRender(canvasElement, width(), height());
 
@@ -161,14 +162,11 @@ export default class Table {
       tableInitEditor(this);
     }
 
-    // canvas bind wheel
     tableCanvasBindWheel(this, hcanvas);
-    // canvas bind mousemove
     tableCanvasBindMousemove(this, hcanvas);
-    // canvas bind mousedown
     tableCanvasBindMousedown(this, hcanvas);
-    // canvas bind dbclick
     tableCanvasBindDblclick(this, hcanvas);
+    tableCanvasBindKeydown(this, hcanvas);
   }
 
   data(): TableData;
@@ -451,6 +449,14 @@ function tableResetSelector(t: Table) {
   }
 }
 
+function tableMoveSelector(t: Table, direction: 'up' | 'down' | 'left' | 'right') {
+  const { _selector } = t;
+  if (_selector) {
+    _selector.move(direction, 1);
+    tableResetSelector(t);
+  }
+}
+
 function tableInitScrollbars(t: Table) {
   const scroll = new Scroll(() => t._data);
   // scrollbar
@@ -502,10 +508,13 @@ function tableInitResizers(t: Table) {
 }
 
 function tableInitEditor(t: Table) {
-  t._editor = new Editor(t._container, t._width, t._height, `13px`, 'Roboto');
-  const { _editor } = t;
+  t._editor = new Editor(t._container, t._width, t._height, `13px`, 'Arial');
+  const { _editor, _selector } = t;
   _editor.inputChange((text) => {});
   _editor.moveChange((direction, value) => {
+    if (direction !== 'none' && _selector) {
+      tableMoveSelector(t, direction);
+    }
     setSelectedRangesValue(t, value);
   });
 }
@@ -644,14 +653,43 @@ function tableCanvasBindDblclick(t: Table, hcanvas: HElement) {
           }
         }
       }
-      if (_selector && _selector.startRange) {
-        const { startRow, startCol } = _selector.startRange;
+      if (_selector && _selector.focusRange) {
+        const { startRow, startCol } = _selector.focusRange;
         const cell = t.cell(startRow, startCol);
         if (cell) {
           const text = cell instanceof Object ? cell.value : cell;
           _editor.value(text + '');
         }
       }
+    }
+  });
+}
+
+function tableCanvasBindKeydown(t: Table, hcanvas: HElement) {
+  hcanvas.on('keydown', (evt) => {
+    // console.log('keydown:::', evt);
+    const { ctrlKey, shiftKey, metaKey, altKey, code } = evt;
+    let direction = null;
+    if (code === 'Enter' && !ctrlKey && !metaKey && !altKey) {
+      if (shiftKey) {
+        direction = 'up';
+      } else {
+        direction = 'down';
+      }
+      evt.preventDefault();
+    } else if (code === 'Tab' && !ctrlKey && !metaKey && !altKey) {
+      if (shiftKey) {
+        direction = 'left';
+      } else {
+        direction = 'right';
+      }
+      evt.preventDefault();
+    } else if (code.startsWith('Arrow')) {
+      direction = code.substring(5).toLowerCase();
+      evt.preventDefault();
+    }
+    if (direction) {
+      tableMoveSelector(t, direction);
     }
   });
 }

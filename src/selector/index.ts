@@ -10,7 +10,8 @@ export default class Selector {
   rowHeaderRanges: Range[] = [];
   colHeaderRanges: Range[] = [];
 
-  startRange: Range | null = null;
+  focus: [number, number] = [0, 0];
+  focusRange: Range | null = null;
   _placement: Placement = 'body';
   _data: TableData;
 
@@ -34,10 +35,11 @@ export default class Selector {
   }
 
   addRange(row: number, col: number, clear: boolean = true) {
+    this.focus = [row, col];
     const range = rangeUnoinMerges(this._data, Range.create(row, col));
     if (clear) this.clearRanges();
     this.ranges.push(range);
-    this.startRange = range;
+    this.focusRange = range;
 
     updateHeaderRanges(this);
     return this;
@@ -45,9 +47,9 @@ export default class Selector {
 
   unionRange(row: number, col: number) {
     const range = Range.create(row, col);
-    const { ranges, startRange } = this;
-    if (startRange) {
-      const newRange = startRange.union(range);
+    const { ranges, focusRange } = this;
+    if (focusRange) {
+      const newRange = focusRange.union(range);
       ranges.splice(-1, 1, rangeUnoinMerges(this._data, newRange));
       updateHeaderRanges(this);
     }
@@ -58,6 +60,24 @@ export default class Selector {
     this.oldRanges = this.ranges;
     this.ranges = [];
     return this;
+  }
+
+  move(type: 'up' | 'down' | 'left' | 'right', step: number) {
+    const { focusRange } = this;
+    if (focusRange && step > 0) {
+      const { startRow, startCol, endRow, endCol } = focusRange;
+      let [row, col] = this.focus;
+      if (type === 'up') {
+        row = startRow - step;
+      } else if (type === 'down') {
+        row = endRow + step;
+      } else if (type === 'left') {
+        col = startCol - step;
+      } else if (type === 'right') {
+        col = endCol + step;
+      }
+      this.addRange(row, col, true);
+    }
   }
 
   addAreaRect(rangeIndex: number, rect: Rect) {

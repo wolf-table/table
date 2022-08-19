@@ -127,7 +127,7 @@ function resizeSize(editor: Editor) {
 }
 
 function keydownHandler(editor: Editor, evt: any) {
-  const { code, shiftKey, metaKey, altKey, ctrlKey, target, isComposing } = evt;
+  const { code, shiftKey, metaKey, altKey, ctrlKey, target } = evt;
   const moveChanger = (direction: MoveDirection) => {
     editor._moveChange(direction, editor._value);
     editor.hide();
@@ -145,7 +145,7 @@ function keydownHandler(editor: Editor, evt: any) {
       moveChanger('down');
     }
     evt.preventDefault();
-  } else if (code === 'Tab') {
+  } else if (code === 'Tab' && !ctrlKey && !metaKey && !altKey) {
     if (shiftKey) {
       // move to left cell
       moveChanger('left');
