@@ -45,6 +45,16 @@ export default class Scrollbar {
     return this;
   }
 
+  scrollBy(value: number): Scrollbar {
+    if (value) {
+      const nvalue = this._value + value;
+      if (this.test(nvalue)) {
+        this.scroll(nvalue);
+      }
+    }
+    return this;
+  }
+
   scroll(): any;
   scroll(value: number): Scrollbar;
   scroll(value?: number): any {

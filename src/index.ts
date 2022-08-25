@@ -638,17 +638,11 @@ function tableCanvasBindWheel(t: Table, hcanvas: HElement) {
     const { _hScrollbar, _vScrollbar } = t;
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
       if (_hScrollbar) {
-        const nvalue = _hScrollbar.value + deltaX;
-        if (_hScrollbar.test(nvalue)) {
-          _hScrollbar.scroll(nvalue);
-        }
+        _hScrollbar.scrollBy(deltaX);
       }
     } else {
       if (_vScrollbar) {
-        const nvalue = _vScrollbar.value + deltaY;
-        if (_vScrollbar.test(nvalue)) {
-          _vScrollbar.scroll(nvalue);
-        }
+        _vScrollbar.scrollBy(deltaY);
       }
     }
   });
