@@ -12,6 +12,7 @@ export default class Selector {
 
   focus: [number, number] = [0, 0];
   focusRange: Range | null = null;
+  focusRect: Rect | null = null;
   _placement: Placement = 'body';
   _data: TableData;
 
@@ -94,7 +95,7 @@ export default class Selector {
       } else if (type === 'right') {
         c = getShowColIndex(endCol + step, 1);
       }
-      if (r >= 0 && r < rows.len - 1 && c >= 0 && c < cols.len - 1) {
+      if (r >= 0 && r <= rows.len - 1 && c >= 0 && c <= cols.len - 1) {
         this.addRange(r, c, true);
       }
     }
@@ -115,6 +116,7 @@ export default class Selector {
 
     const last = rangeIndex === this.ranges.length - 1;
     if (last) {
+      this.focusRect = rect;
       this._ = h('div', `${stylePrefix}-selector`)
         .css({
           left: x - borderWidth / 2,

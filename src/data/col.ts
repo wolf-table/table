@@ -16,11 +16,9 @@ export function colWidth(data: TableData, index: number): number;
 export function colWidth(data: TableData, index: number, value: number): void;
 export function colWidth(data: TableData, index: number, value?: number) {
   if (value) {
-    if (value !== data.colWidth) {
-      const { cols } = data;
-      if (cols[index]) cols[index].width = value;
-      else cols[index] = { width: value };
-    }
+    const { cols } = data;
+    if (cols[index]) cols[index].width = value;
+    else cols[index] = { width: value };
   } else {
     const c = col(data, index);
     return c.hide ? 0 : c.width;
@@ -36,8 +34,10 @@ export function colsWidth(data: TableData, min?: number, max?: number) {
     for (let key in cols) {
       if (key !== 'len') {
         const h = colWidth(data, parseInt(key, 10));
-        total += h;
-        total -= data.colWidth;
+        if (h > 0) {
+          total += h;
+          total -= data.colWidth;
+        }
       }
     }
     return total;

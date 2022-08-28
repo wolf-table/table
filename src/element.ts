@@ -135,7 +135,7 @@ export default class HElement {
   scrollx(value: number): HElement;
   scrollx(value?: number): any {
     const { _ } = this;
-    if (value) {
+    if (value !== undefined) {
       _.scrollLeft = value;
       return this;
     }
@@ -146,7 +146,7 @@ export default class HElement {
   scrolly(value: number): HElement;
   scrolly(value?: number): any {
     const { _ } = this;
-    if (value) {
+    if (value !== undefined) {
       _.scrollTop = value;
       return this;
     }
@@ -199,7 +199,6 @@ export function textWidth(text: string, fontSize: string, fontFamily: string) {
   el.textContent = text;
   document.body.appendChild(el);
   const width = el.clientWidth;
-  console.log(el.clientWidth);
   document.body.removeChild(el);
   return width;
 }

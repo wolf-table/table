@@ -42,6 +42,7 @@ import Selector from './selector';
 import Overlayer from './overlayer';
 import { stylePrefix, borderWidth } from './config';
 import Editor from './editor';
+import { indexAt } from 'table-render/dist/alphabet';
 
 export type TableOptions = {
   rowHeight?: number;
@@ -84,6 +85,9 @@ export default class Table {
   _width: () => number;
 
   _height: () => number;
+
+  // cache for rect of content
+  _contentRect: Rect = { x: 0, y: 0, width: 0, height: 0 };
 
   _container: HElement;
 
@@ -137,6 +141,9 @@ export default class Table {
       if (colHeader) Object.assign(this._colHeader, colHeader);
     }
 
+    // resize rect of content
+    resizeContentRect(this);
+
     const canvasElement = document.createElement('canvas');
     // tabIndex for trigger keydown event
     const hcanvas = h(canvasElement).attr('tabIndex', '1');
@@ -148,12 +155,12 @@ export default class Table {
     // scroll
     if (options?.scrollable) {
       // init scrollbars
-      tableInitScrollbars(this);
+      initScrollbars(this);
     }
 
     if (options?.resizable) {
       // init resizers
-      tableInitResizers(this);
+      initResizers(this);
     }
 
     if (options?.selectable) {
@@ -161,14 +168,14 @@ export default class Table {
     }
 
     if (options?.editable) {
-      tableInitEditor(this);
+      initEditor(this);
     }
 
-    tableCanvasBindWheel(this, hcanvas);
-    tableCanvasBindMousemove(this, hcanvas);
-    tableCanvasBindMousedown(this, hcanvas);
-    tableCanvasBindDblclick(this, hcanvas);
-    tableCanvasBindKeydown(this, hcanvas);
+    canvasBindWheel(this, hcanvas);
+    canvasBindMousemove(this, hcanvas);
+    canvasBindMousedown(this, hcanvas);
+    canvasBindDblclick(this, hcanvas);
+    canvasBindKeydown(this, hcanvas);
   }
 
   data(): TableData;
@@ -177,14 +184,20 @@ export default class Table {
     if (data) {
       Object.assign(this._data, data);
       this._cells.load(this._data);
+      resizeContentRect(this);
       return this;
     } else {
       return this._data;
     }
   }
 
+  contentRect() {
+    return this._contentRect;
+  }
+
   resize() {
     this._container.css({ height: this._height(), width: this._width() });
+    this.render();
   }
 
   freeze(ref: string) {
@@ -237,6 +250,9 @@ export default class Table {
   row(index: number, value: Partial<DataRow>): Table;
   row(index: number, value?: Partial<DataRow>): any {
     if (value) {
+      if (value.height) {
+        this.rowHeight(index, value.height);
+      }
       row(this._data, index, value);
       return this;
     }
@@ -246,17 +262,24 @@ export default class Table {
   rowHeight(index: number): number;
   rowHeight(index: number, value: number): Table;
   rowHeight(index: number, value?: number): any {
+    const oldValue = rowHeight(this._data, index);
     if (value) {
-      rowHeight(this._data, index, value);
+      if (oldValue !== value) {
+        rowHeight(this._data, index, value);
+        this._contentRect.height += value - oldValue;
+      }
       return this;
     }
-    return rowHeight(this._data, index);
+    return oldValue;
   }
 
   col(index: number): DataCol;
   col(index: number, value: Partial<DataCol>): Table;
   col(index: number, value?: Partial<DataCol>): any {
     if (value) {
+      if (value.width) {
+        this.colWidth(index, value.width);
+      }
       col(this._data, index, value);
       return this;
     }
@@ -266,11 +289,15 @@ export default class Table {
   colWidth(index: number): number;
   colWidth(index: number, value: number): Table;
   colWidth(index: number, value?: number): any {
+    const oldValue = colWidth(this._data, index);
     if (value) {
-      colWidth(this._data, index, value);
+      if (oldValue !== value) {
+        colWidth(this._data, index, value);
+        this._contentRect.width += value - oldValue;
+      }
       return this;
     }
-    return colWidth(this._data, index);
+    return oldValue;
   }
 
   colsWidth(min: number, max: number) {
@@ -322,7 +349,6 @@ export default class Table {
   }
 
   render() {
-    // console.log('scroll:', this._data.scroll);
     this._render
       .colHeader(this._colHeader)
       .rowHeader(this._rowHeader)
@@ -345,13 +371,13 @@ export default class Table {
     const { _render, _overlayer } = this;
     const { viewport } = _render;
     if (viewport) {
-      viewport.areas.forEach(({ x, y, width, height }, index) => {
-        _overlayer.area(index, { left: x, top: y, width, height });
+      viewport.areas.forEach((rect, index) => {
+        _overlayer.area(index, rect);
       });
-      viewport.headerAreas.forEach(({ x, y, width, height }, index) => {
-        _overlayer.headerArea(index, { left: x, top: y, width, height });
+      viewport.headerAreas.forEach((rect, index) => {
+        _overlayer.headerArea(index, rect);
       });
-      tableResizeScrollbars(this);
+      resizeScrollbars(this);
     }
     return this;
   }
@@ -368,6 +394,15 @@ export default class Table {
 
 // methods ---- start ----
 
+function resizeContentRect(t: Table) {
+  t._contentRect = {
+    x: t._rowHeader.width,
+    y: t._colHeader.height,
+    width: colsWidth(t._data),
+    height: rowsHeight(t._data),
+  };
+}
+
 function setSelectedRangesValue(t: Table, value: string) {
   const { _selector } = t;
   if (_selector) {
@@ -381,7 +416,7 @@ function setSelectedRangesValue(t: Table, value: string) {
   }
 }
 
-function tableResetSelector(t: Table) {
+function resetSelector(t: Table) {
   const { _selector, _overlayer, _container, _rowHeader, _colHeader } = t;
   const { viewport } = t._render;
   if (_selector && viewport) {
@@ -483,40 +518,64 @@ function tableResetSelector(t: Table) {
 
 function tableMoveSelector(t: Table, direction: 'up' | 'down' | 'left' | 'right') {
   const { _selector } = t;
-  if (_selector) {
+  const { viewport } = t._render;
+  if (_selector && viewport) {
+    const [, , , area4] = viewport.areas;
     _selector.move(direction, 1);
-    tableResetSelector(t);
+    const [fr, fc] = _selector.focus;
+    const { focusRange } = _selector;
+    let [rows, cols] = [1, 1];
+    if (focusRange) {
+      rows += focusRange.rows;
+      cols += focusRange.cols;
+    }
+    const { startRow, startCol, endRow, endCol } = area4.range;
+    if (viewport.inAreas(fr, fc) && endRow !== fr && endCol !== fc) {
+      resetSelector(t);
+    } else {
+      if (direction === 'up') {
+        t._vScrollbar?.scrollBy(-t.rowsHeight(fr, fr + rows), true);
+      } else if (direction === 'down') {
+        t._vScrollbar?.scrollBy(t.rowsHeight(startRow, startRow + rows), true);
+      } else if (direction === 'left') {
+        t._hScrollbar?.scrollBy(-t.colsWidth(fc, fc + cols), true);
+      } else if (direction === 'right') {
+        t._hScrollbar?.scrollBy(t.colsWidth(startCol, startCol + cols), true);
+      }
+    }
   }
 }
 
-function tableInitScrollbars(t: Table) {
+function initScrollbars(t: Table) {
   const scroll = new Scroll(() => t._data);
   // scrollbar
   t._vScrollbar = new Scrollbar('vertical', t._container).change((direction, value) => {
     if (scroll.y(direction, value)) {
       t.render();
-      tableResetSelector(t);
+      resetSelector(t);
     }
   });
 
   t._hScrollbar = new Scrollbar('horizontal', t._container).change((direction, value) => {
     if (scroll.x(direction, value)) {
       t.render();
-      tableResetSelector(t);
+      resetSelector(t);
     }
   });
 }
 
-function tableResizeScrollbars(t: Table) {
+// invoke it after rendered
+function resizeScrollbars(t: Table) {
+  const { height, width } = t._contentRect;
   if (t._vScrollbar) {
-    t._vScrollbar.resize(t._height(), rowsHeight(t._data));
+    t._vScrollbar.resize(t._height(), height);
   }
   if (t._hScrollbar) {
-    t._hScrollbar.resize(t._width() - 15, colsWidth(t._data));
+    t._hScrollbar.resize(t._width() - 15, width);
   }
 }
 
-function tableInitResizers(t: Table) {
+function initResizers(t: Table) {
   t._rowResizer = new Resizer(
     'row',
     t._container,
@@ -524,7 +583,7 @@ function tableInitResizers(t: Table) {
     () => t._width(),
     (value, { row, height }) => {
       t.rowHeight(row, height + value).render();
-      tableResetSelector(t);
+      resetSelector(t);
     }
   );
   t._colResizer = new Resizer(
@@ -534,12 +593,12 @@ function tableInitResizers(t: Table) {
     () => t._height(),
     (value, { col, width }) => {
       t.colWidth(col, width + value).render();
-      tableResetSelector(t);
+      resetSelector(t);
     }
   );
 }
 
-function tableInitEditor(t: Table) {
+function initEditor(t: Table) {
   t._editor = new Editor(t._container, t._width, t._height, `13px`, 'Arial');
   const { _editor, _selector } = t;
   _editor.inputChange((text) => {});
@@ -551,7 +610,7 @@ function tableInitEditor(t: Table) {
   });
 }
 
-function tableCanvasBindMousedown(t: Table, hcanvas: HElement) {
+function canvasBindMousedown(t: Table, hcanvas: HElement) {
   hcanvas.on('mousedown', (evt) => {
     const { _selector, _render, _editor } = t;
     const { viewport } = _render;
@@ -567,7 +626,7 @@ function tableCanvasBindMousedown(t: Table, hcanvas: HElement) {
           cache = { row, col };
           _selector.placement(placement).addRange(row, col, !(metaKey || ctrlKey));
         }
-        tableResetSelector(t);
+        resetSelector(t);
 
         if (placement !== 'all') {
           const { left, top } = hcanvas.rect();
@@ -583,7 +642,7 @@ function tableCanvasBindMousedown(t: Table, hcanvas: HElement) {
               const { row, col } = c1;
               if (row != cache.row || col !== cache.col) {
                 _selector.unionRange(row, col);
-                tableResetSelector(t);
+                resetSelector(t);
                 cache = { row, col };
               }
             }
@@ -604,7 +663,7 @@ function tableCanvasBindMousedown(t: Table, hcanvas: HElement) {
   });
 }
 
-function tableCanvasBindMousemove(t: Table, hcanvas: HElement) {
+function canvasBindMousemove(t: Table, hcanvas: HElement) {
   hcanvas.on('mousemove', (evt) => {
     const { _rowResizer, _colResizer, _render } = t;
     const { viewport } = _render;
@@ -632,7 +691,7 @@ function tableCanvasBindMousemove(t: Table, hcanvas: HElement) {
   });
 }
 
-function tableCanvasBindWheel(t: Table, hcanvas: HElement) {
+function canvasBindWheel(t: Table, hcanvas: HElement) {
   hcanvas.on('wheel.prevent', (evt) => {
     const { deltaX, deltaY } = evt;
     const { _hScrollbar, _vScrollbar } = t;
@@ -648,7 +707,7 @@ function tableCanvasBindWheel(t: Table, hcanvas: HElement) {
   });
 }
 
-function tableCanvasBindDblclick(t: Table, hcanvas: HElement) {
+function canvasBindDblclick(t: Table, hcanvas: HElement) {
   hcanvas.on('dblclick.prevent', (evt) => {
     const { _selector, _editor, _rowHeader, _colHeader } = t;
     const { viewport } = t._render;
@@ -691,9 +750,8 @@ function tableCanvasBindDblclick(t: Table, hcanvas: HElement) {
   });
 }
 
-function tableCanvasBindKeydown(t: Table, hcanvas: HElement) {
+function canvasBindKeydown(t: Table, hcanvas: HElement) {
   hcanvas.on('keydown', (evt) => {
-    // console.log('keydown:::', evt);
     const { ctrlKey, shiftKey, metaKey, altKey, code } = evt;
     let direction = null;
     if (code === 'Enter' && !ctrlKey && !metaKey && !altKey) {

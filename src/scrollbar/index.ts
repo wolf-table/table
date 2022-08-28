@@ -13,6 +13,8 @@ export default class Scrollbar {
 
   _maxValue: number = 0;
 
+  _lastOffset: number = 0;
+
   _type: 'vertical' | 'horizontal';
 
   _change: ScrollbarChanger = null;
@@ -24,7 +26,6 @@ export default class Scrollbar {
       .append(this._content)
       .on('scroll.stop', (evt) => {
         const { scrollTop, scrollLeft }: any = evt.target;
-        // console.log('scrollTop:', scrollTop);
         if (this._change) {
           const nvalue = type === 'vertical' ? scrollTop : scrollLeft;
           const direction = nvalue > this._value ? '+' : '-';
@@ -45,12 +46,18 @@ export default class Scrollbar {
     return this;
   }
 
-  scrollBy(value: number): Scrollbar {
+  scrollBy(value: number, moveByCell?: boolean): Scrollbar {
     if (value) {
-      const nvalue = this._value + value;
-      if (this.test(nvalue)) {
-        this.scroll(nvalue);
+      const { _value, _maxValue } = this;
+      let nvalue = _value + value;
+      if (moveByCell === true) {
+        if (nvalue >= 0 && nvalue <= _maxValue) {
+          nvalue = nvalue < Math.abs(value) ? 0 : nvalue;
+        } else {
+          nvalue = _maxValue;
+        }
       }
+      this.scroll(nvalue);
     }
     return this;
   }
@@ -59,7 +66,7 @@ export default class Scrollbar {
   scroll(value: number): Scrollbar;
   scroll(value?: number): any {
     const { _, _type } = this;
-    if (value) {
+    if (value !== undefined) {
       if (_type === 'vertical') {
         _.scrolly(value);
       } else {
@@ -70,17 +77,12 @@ export default class Scrollbar {
     return _type === 'vertical' ? _.scrolly() : _.scrollx();
   }
 
-  test(value: number): boolean {
-    return value > 0 && value <= this._maxValue;
-  }
-
   // update this size
   resize(value: number, contentValue: number) {
     if (contentValue > value - 1) {
       const cssKey = typeCssKeys[this._type];
       this._content.css(cssKey, `${contentValue}px`);
       this._.css(cssKey, `${value}px`).show();
-
       this._maxValue = contentValue - value;
     } else {
       this._.hide();

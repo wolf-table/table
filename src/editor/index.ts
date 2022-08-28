@@ -1,4 +1,4 @@
-import HElement, { h, textWidth } from '../element';
+import HElement, { h } from '../element';
 import { borderWidth, stylePrefix } from '../config';
 import { Rect } from 'table-render';
 

@@ -10,17 +10,16 @@ function scrollTo(
 ): boolean {
   let newValue = oldValue[index];
   let changed = false;
-  // console.log('value:', value, oldValue[index]);
   if (direction === '+') {
     for (let i = data.scroll[index]; i < data.rows.len; i += 1) {
-      if (newValue > value) break;
+      if (newValue >= value) break;
       newValue += getValue(i);
       data.scroll[index] = i + 1;
       changed = true;
     }
   } else {
     for (let i = data.scroll[index]; i > 0; i -= 1) {
-      if (newValue < value) break;
+      if (newValue <= value) break;
       newValue -= getValue(i);
       data.scroll[index] = i - 1;
       changed = true;

@@ -20,7 +20,6 @@ export function addBorder(t: TableData, border: Border) {
     }
   }
   borders.push(border);
-  console.log('borders:', borders);
 }
 
 export function clearBorder(t: TableData, ref: string) {
