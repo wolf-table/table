@@ -22,7 +22,8 @@ import {
   unmerge,
   isMerged,
   rangeUnoinMerges,
-  Scroll,
+  scrollx,
+  scrolly,
   Cells,
   FormulaFunc,
   DataCell,
@@ -42,7 +43,7 @@ import Selector from './selector';
 import Overlayer from './overlayer';
 import { stylePrefix, borderWidth } from './config';
 import Editor from './editor';
-import { indexAt } from 'table-render/dist/alphabet';
+import { expr2xy } from 'table-render';
 
 export type TableOptions = {
   rowHeight?: number;
@@ -352,8 +353,8 @@ export default class Table {
     this._render
       .colHeader(this._colHeader)
       .rowHeader(this._rowHeader)
-      .scrollRows(this._data.scroll[1])
-      .scrollCols(this._data.scroll[0])
+      .scrollRows(this._data.scroll[0])
+      .scrollCols(this._data.scroll[1])
       .merges(this._data.merges)
       .freeze(this._data.freeze)
       .styles(this._data.styles)
@@ -517,12 +518,26 @@ function resetSelector(t: Table) {
 }
 
 function tableMoveSelector(t: Table, direction: 'up' | 'down' | 'left' | 'right') {
-  const { _selector } = t;
+  const { _selector, _data } = t;
   const { viewport } = t._render;
   if (_selector && viewport) {
-    const [, , , area4] = viewport.areas;
+    let [fr, fc] = _selector.focus;
     _selector.move(direction, 1);
-    const [fr, fc] = _selector.focus;
+    if (_data.freeze && (direction === 'down' || direction === 'right')) {
+      const [fc1, fr1] = expr2xy(_data.freeze);
+      const [srows, scols] = _data.scroll;
+      if (fr + 1 === fr1 && srows > 0) {
+        t._vScrollbar?.scroll(0);
+        return;
+      }
+      if (fc + 1 === fc1 && scols > 0) {
+        t._hScrollbar?.scroll(0);
+        return;
+      }
+    }
+
+    const [, , , area4] = viewport.areas;
+    [fr, fc] = _selector.focus;
     const { focusRange } = _selector;
     let [rows, cols] = [1, 1];
     if (focusRange) {
@@ -547,17 +562,16 @@ function tableMoveSelector(t: Table, direction: 'up' | 'down' | 'left' | 'right'
 }
 
 function initScrollbars(t: Table) {
-  const scroll = new Scroll(() => t._data);
   // scrollbar
   t._vScrollbar = new Scrollbar('vertical', t._container).change((direction, value) => {
-    if (scroll.y(direction, value)) {
+    if (scrolly(t._data, direction, value)) {
       t.render();
       resetSelector(t);
     }
   });
 
   t._hScrollbar = new Scrollbar('horizontal', t._container).change((direction, value) => {
-    if (scroll.x(direction, value)) {
+    if (scrollx(t._data, direction, value)) {
       t.render();
       resetSelector(t);
     }
@@ -566,12 +580,12 @@ function initScrollbars(t: Table) {
 
 // invoke it after rendered
 function resizeScrollbars(t: Table) {
-  const { height, width } = t._contentRect;
+  const { x, y, height, width } = t._contentRect;
   if (t._vScrollbar) {
-    t._vScrollbar.resize(t._height(), height);
+    t._vScrollbar.resize(t._height(), height + y);
   }
   if (t._hScrollbar) {
-    t._hScrollbar.resize(t._width() - 15, width);
+    t._hScrollbar.resize(t._width(), width + x);
   }
 }
 

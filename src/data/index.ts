@@ -1,6 +1,6 @@
 import { Cell, CellStyle, Border } from 'table-render';
 import Cells from './cells';
-import Scroll from './scroll';
+import { scrollx, scrolly, scrollResetRows, scrollResetCols } from './scroll';
 
 import { isMerged, merge, unmerge, rangeUnoinMerges } from './merge';
 import { addStyle, clearStyles } from './style';
@@ -36,7 +36,7 @@ export type TableData = {
   cols: DataCols;
   rowHeight: number;
   colWidth: number;
-  scroll: [number, number]; // cols, rows
+  scroll: [number, number, number, number]; // rows, cols, x, y
   style: CellStyle;
   styles?: Partial<CellStyle>[];
   borders?: Border[];
@@ -57,7 +57,7 @@ export function defaultData(): TableData {
     },
     rowHeight: 25,
     colWidth: 100,
-    scroll: [0, 0],
+    scroll: [0, 0, 0, 0],
     style: {
       fontName: 'Helvetica',
       fontSize: 10,
@@ -90,6 +90,9 @@ export {
   row,
   rowHeight,
   rowsHeight,
-  Scroll,
+  scrollx,
+  scrolly,
+  scrollResetRows,
+  scrollResetCols,
   Cells,
 };
