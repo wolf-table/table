@@ -1,4 +1,4 @@
-import { Cell, CellStyle, Border } from 'table-render';
+import { Cell, CellStyle, Border, Row, Col } from 'table-render';
 import Cells from './cells';
 import { scrollx, scrolly, scrollResetRows, scrollResetCols } from './scroll';
 
@@ -8,21 +8,13 @@ import { addBorder, clearBorder, clearBorders } from './border';
 import { col, colWidth, colsWidth } from './col';
 import { row, rowHeight, rowsHeight } from './row';
 
-export type DataRow = {
-  height: number;
-  hide?: boolean;
-  style?: number;
-};
+export type DataRow = Row;
 export type DataRows = {
   len: number;
   [key: number]: DataRow;
 };
 
-export type DataCol = {
-  width: number;
-  hide?: boolean;
-  style?: number;
-};
+export type DataCol = Col;
 export type DataCols = {
   len: number;
   [key: number]: DataCol;
@@ -45,7 +37,7 @@ export type TableData = {
   cells?: DataIndexCell[];
 };
 
-export type FormulaFunc = (formula: string) => string | number;
+export type CellFormulaFunc = (formula: string) => string | number;
 
 export function defaultData(): TableData {
   return {

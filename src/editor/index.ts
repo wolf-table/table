@@ -50,6 +50,11 @@ export default class Editor {
       });
   }
 
+  appendTo(target: HElement): Editor {
+    target.append(this._);
+    return this;
+  }
+
   value(): string;
   value(text: string): void;
   value(text?: string) {

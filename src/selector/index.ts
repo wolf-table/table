@@ -13,6 +13,7 @@ export default class Selector {
   focus: [number, number] = [0, 0];
   focusRange: Range | null = null;
   focusRect: Rect | null = null;
+  focusTarget: HElement | null = null;
   _placement: Placement = 'body';
   _data: TableData;
 
@@ -30,7 +31,10 @@ export default class Selector {
     this._data = data;
   }
 
-  placement(value: Placement) {
+  placement(): Placement;
+  placement(value: Placement): Selector;
+  placement(value?: Placement): any {
+    if (value === undefined) return this._placement;
     this._placement = value;
     return this;
   }
@@ -101,6 +105,11 @@ export default class Selector {
     }
   }
 
+  setFocusRectAndTarget(rect: Rect, target: HElement) {
+    this.focusRect = rect;
+    this.focusTarget = target;
+  }
+
   addAreaRect(rangeIndex: number, rect: Rect) {
     const { x, y, width, height } = rect;
     this._areas.push(
@@ -116,7 +125,6 @@ export default class Selector {
 
     const last = rangeIndex === this.ranges.length - 1;
     if (last) {
-      this.focusRect = rect;
       this._ = h('div', `${stylePrefix}-selector`)
         .css({
           left: x - borderWidth / 2,
@@ -159,6 +167,7 @@ export default class Selector {
   }
 
   clearTargets() {
+    this.focusTarget = null;
     if (this._targets && this._targets.length > 0) {
       this._targets.forEach((it, index) => it.remove(...this._targetChildren[index]));
       [this._targetChildren, this._targets].forEach((it) => (it.length = 0));

@@ -121,6 +121,11 @@ export default class HElement {
     return this._.getBoundingClientRect();
   }
 
+  offset() {
+    const { _ } = this;
+    return { x: _.offsetLeft, y: _.offsetTop, width: _.offsetWidth, height: _.offsetHeight };
+  }
+
   show(flag: boolean = true) {
     this.css('display', flag ? 'block' : 'none');
     return this;

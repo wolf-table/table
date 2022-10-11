@@ -8,6 +8,7 @@ import TableRender, {
   Range,
   Area,
   Border,
+  CellFormatFunc,
 } from 'table-render';
 import {
   defaultData,
@@ -25,7 +26,7 @@ import {
   scrollx,
   scrolly,
   Cells,
-  FormulaFunc,
+  CellFormulaFunc,
   DataCell,
   addStyle,
   clearStyles,
@@ -309,8 +310,13 @@ export default class Table {
     return rowsHeight(this._data, min, max);
   }
 
-  formula(v: FormulaFunc): Table {
+  cellFormula(v: CellFormulaFunc): Table {
     this._cells.formula(v);
+    return this;
+  }
+
+  cellFormat(v: CellFormatFunc) {
+    this._cells.format(v);
     return this;
   }
 
@@ -366,6 +372,7 @@ export default class Table {
       .cell((r, c) => {
         return this.cell(r, c);
       })
+      .cellFormat(this._cells._format)
       .render();
 
     // viewport
@@ -435,13 +442,20 @@ function resetSelector(t: Table) {
     ) => {
       viewport.areas.forEach((area, index) => {
         let intersects = false;
+        const target = _overlayer.areas[index];
         _selector.ranges.forEach((r, i) => {
           if (intersectsFunc(area.range, r)) {
             intersects = true;
             _selector.addAreaRect(i, rectFunc(area, r, index));
           }
         });
-        if (intersects) _selector.addTarget(_overlayer.areas[index]);
+        const { focusRange } = _selector;
+        if (focusRange) {
+          if (intersectsFunc(area.range, focusRange)) {
+            _selector.setFocusRectAndTarget(rectFunc(area, focusRange, index), target);
+          }
+        }
+        if (intersects) _selector.addTarget(target);
       });
     };
 
@@ -567,6 +581,7 @@ function initScrollbars(t: Table) {
     if (scrolly(t._data, direction, value)) {
       t.render();
       resetSelector(t);
+      showEditor(t, false);
     }
   });
 
@@ -574,6 +589,7 @@ function initScrollbars(t: Table) {
     if (scrollx(t._data, direction, value)) {
       t.render();
       resetSelector(t);
+      showEditor(t, false);
     }
   });
 }
@@ -622,6 +638,29 @@ function initEditor(t: Table) {
     }
     setSelectedRangesValue(t, value);
   });
+}
+
+function showEditor(t: Table, resetValue = true) {
+  const { _selector, _editor } = t;
+  if (_selector && _editor) {
+    if (_selector && _selector._placement === 'body') {
+      const { focusRange, focusRect, focusTarget } = _selector;
+      if (focusRange && focusRect && focusTarget) {
+        _editor.appendTo(focusTarget).show(focusRect);
+        if (resetValue) {
+          const cell = t.cell(focusRange.startRow, focusRange.startCol);
+          if (cell) {
+            const text = cell instanceof Object ? cell.value : cell;
+            _editor.value(text + '');
+          }
+        }
+      } else {
+        _editor.hide();
+      }
+    } else {
+      _editor.hide();
+    }
+  }
 }
 
 function canvasBindMousedown(t: Table, hcanvas: HElement) {
@@ -722,51 +761,15 @@ function canvasBindWheel(t: Table, hcanvas: HElement) {
 }
 
 function canvasBindDblclick(t: Table, hcanvas: HElement) {
-  hcanvas.on('dblclick.prevent', (evt) => {
-    const { _selector, _editor, _rowHeader, _colHeader } = t;
-    const { viewport } = t._render;
-    const { offsetX, offsetY } = evt;
-    if (_selector && _editor && viewport) {
-      _editor.hide();
-      if (offsetX > _rowHeader.width && offsetY > _colHeader.height) {
-        const vcell = viewport.cellAt(offsetX, offsetY);
-        if (vcell) {
-          const { row, col } = vcell;
-          const range = Range.create(row, col);
-          const nRange = rangeUnoinMerges(t._data, range);
-          if (range !== nRange) {
-            const { _placement } = _selector;
-            if (_placement === 'body') {
-              for (let area of viewport.areas) {
-                if (nRange.intersects(area.range)) {
-                  const rect = area.rect(nRange);
-                  rect.x += area.x;
-                  rect.y += area.y;
-                  _editor.show(rect);
-                  break;
-                }
-              }
-            }
-          } else {
-            _editor.show(vcell);
-          }
-        }
-      }
-      if (_selector && _selector.focusRange) {
-        const { startRow, startCol } = _selector.focusRange;
-        const cell = t.cell(startRow, startCol);
-        if (cell) {
-          const text = cell instanceof Object ? cell.value : cell;
-          _editor.value(text + '');
-        }
-      }
-    }
+  hcanvas.on('dblclick.prevent', () => {
+    showEditor(t);
   });
 }
 
 function canvasBindKeydown(t: Table, hcanvas: HElement) {
   hcanvas.on('keydown', (evt) => {
     const { ctrlKey, shiftKey, metaKey, altKey, code } = evt;
+    console.log('code:', code);
     let direction = null;
     if (code === 'Enter' && !ctrlKey && !metaKey && !altKey) {
       if (shiftKey) {
@@ -785,6 +788,25 @@ function canvasBindKeydown(t: Table, hcanvas: HElement) {
     } else if (code.startsWith('Arrow')) {
       direction = code.substring(5).toLowerCase();
       evt.preventDefault();
+    } else if (
+      code.startsWith('Key') ||
+      code.startsWith('Digit') ||
+      [
+        'Minus',
+        'Equal',
+        'Space',
+        'BracketLeft',
+        'BracketRight',
+        'Backslash',
+        'Semicolon',
+        'Quote',
+        'Comma',
+        'Period',
+        'Slash',
+      ].includes(code)
+    ) {
+      // editor
+      showEditor(t);
     }
     if (direction) {
       tableMoveSelector(t, direction);

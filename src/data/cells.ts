@@ -1,15 +1,22 @@
-import { DataIndexCell, DataCell, TableData, FormulaFunc } from '.';
+import { CellFormatFunc } from 'table-render';
+import { DataIndexCell, DataCell, TableData, CellFormulaFunc } from '.';
 
 export default class Cells {
   _: DataIndexCell[] = [];
   _indexes = new Map();
   _formulas: number[] = [];
-  _formula: FormulaFunc = (v) => v;
+  _formula: CellFormulaFunc = (v) => v;
+  _format: CellFormatFunc = (v) => v;
 
   constructor() {}
 
-  formula(v: FormulaFunc) {
+  formula(v: CellFormulaFunc) {
     this._formula = v;
+    return this;
+  }
+
+  format(v: CellFormatFunc) {
+    this._format = v;
     return this;
   }
 
@@ -48,7 +55,7 @@ export default class Cells {
   }
 
   private resetIndexes() {
-    const { _, _indexes } = this;
+    const { _ } = this;
     for (let i = 0; i < _.length; i += 1) {
       const [r, c, cell] = _[i];
       this.updateIndex(r, c, i);
