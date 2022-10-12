@@ -47,6 +47,6 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "table-render": "file:../table-render"
+    "table-renderer": "file:../table-renderer"
   }
 }

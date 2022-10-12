@@ -1,4 +1,4 @@
-import { CellFormatFunc } from 'table-render';
+import { CellFormatter } from 'table-renderer';
 import { DataIndexCell, DataCell, TableData, CellFormulaFunc } from '.';
 
 export default class Cells {
@@ -6,7 +6,7 @@ export default class Cells {
   _indexes = new Map();
   _formulas: number[] = [];
   _formula: CellFormulaFunc = (v) => v;
-  _format: CellFormatFunc = (v) => v;
+  _formatter: CellFormatter = (v) => v;
 
   constructor() {}
 
@@ -15,8 +15,8 @@ export default class Cells {
     return this;
   }
 
-  format(v: CellFormatFunc) {
-    this._format = v;
+  formatter(v: CellFormatter) {
+    this._formatter = v;
     return this;
   }
 

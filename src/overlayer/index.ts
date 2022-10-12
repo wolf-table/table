@@ -1,4 +1,4 @@
-import { Rect } from 'table-render';
+import { Rect } from 'table-renderer';
 import { stylePrefix } from '../config';
 import HElement, { h } from '../element';
 

@@ -1,4 +1,4 @@
-import { expr2xy } from 'table-render';
+import { expr2xy } from 'table-renderer';
 import { col, row, TableData } from '.';
 
 function scrollTo(

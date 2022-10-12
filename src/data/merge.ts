@@ -1,4 +1,4 @@
-import { Range } from 'table-render';
+import { Range } from 'table-renderer';
 import { TableData } from '.';
 
 // can be merged

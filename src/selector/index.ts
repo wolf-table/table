@@ -1,4 +1,4 @@
-import { Range, Rect } from 'table-render';
+import { Range, Rect } from 'table-renderer';
 import { stylePrefix, borderWidth } from '../config';
 import { rangeUnoinMerges, TableData, row, col } from '../data';
 import HElement, { h } from '../element';

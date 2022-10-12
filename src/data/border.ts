@@ -1,5 +1,5 @@
 import { TableData } from '.';
-import { Border, Range } from 'table-render';
+import { Border, Range } from 'table-renderer';
 
 export function addBorder(t: TableData, border: Border) {
   if (!t.borders) t.borders = [];

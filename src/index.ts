@@ -1,5 +1,6 @@
 import './style.index.less';
-import TableRender, {
+import TableRenderer, {
+  expr2xy,
   stringAt,
   CellStyle,
   ColHeader,
@@ -8,8 +9,8 @@ import TableRender, {
   Range,
   Area,
   Border,
-  CellFormatFunc,
-} from 'table-render';
+  CellFormatter,
+} from 'table-renderer';
 import {
   defaultData,
   TableData,
@@ -44,7 +45,6 @@ import Selector from './selector';
 import Overlayer from './overlayer';
 import { stylePrefix, borderWidth } from './config';
 import Editor from './editor';
-import { expr2xy } from 'table-render';
 
 export type TableOptions = {
   rowHeight?: number;
@@ -95,7 +95,7 @@ export default class Table {
 
   _data: TableData;
 
-  _render: TableRender;
+  _renderer: TableRenderer;
 
   _cells = new Cells();
 
@@ -150,7 +150,7 @@ export default class Table {
     // tabIndex for trigger keydown event
     const hcanvas = h(canvasElement).attr('tabIndex', '1');
     this._container.append(canvasElement);
-    this._render = new TableRender(canvasElement, width(), height());
+    this._renderer = new TableRenderer(canvasElement, width(), height());
 
     this._overlayer = new Overlayer(this._container);
 
@@ -315,8 +315,8 @@ export default class Table {
     return this;
   }
 
-  cellFormat(v: CellFormatFunc) {
-    this._cells.format(v);
+  cellFormatter(v: CellFormatter) {
+    this._cells.formatter(v);
     return this;
   }
 
@@ -356,7 +356,7 @@ export default class Table {
   }
 
   render() {
-    this._render
+    this._renderer
       .colHeader(this._colHeader)
       .rowHeader(this._rowHeader)
       .scrollRows(this._data.scroll[0])
@@ -372,12 +372,12 @@ export default class Table {
       .cell((r, c) => {
         return this.cell(r, c);
       })
-      .cellFormat(this._cells._format)
+      .cellFormatter(this._cells._formatter)
       .render();
 
     // viewport
-    const { _render, _overlayer } = this;
-    const { viewport } = _render;
+    const { _renderer, _overlayer } = this;
+    const { viewport } = _renderer;
     if (viewport) {
       viewport.areas.forEach((rect, index) => {
         _overlayer.area(index, rect);
@@ -426,7 +426,7 @@ function setSelectedRangesValue(t: Table, value: string) {
 
 function resetSelector(t: Table) {
   const { _selector, _overlayer, _container, _rowHeader, _colHeader } = t;
-  const { viewport } = t._render;
+  const { viewport } = t._renderer;
   if (_selector && viewport) {
     const { _placement } = _selector;
     _selector.clearTargets();
@@ -533,7 +533,7 @@ function resetSelector(t: Table) {
 
 function tableMoveSelector(t: Table, direction: 'up' | 'down' | 'left' | 'right') {
   const { _selector, _data } = t;
-  const { viewport } = t._render;
+  const { viewport } = t._renderer;
   if (_selector && viewport) {
     let [fr, fc] = _selector.focus;
     _selector.move(direction, 1);
@@ -665,8 +665,8 @@ function showEditor(t: Table, resetValue = true) {
 
 function canvasBindMousedown(t: Table, hcanvas: HElement) {
   hcanvas.on('mousedown', (evt) => {
-    const { _selector, _render, _editor } = t;
-    const { viewport } = _render;
+    const { _selector, _renderer, _editor } = t;
+    const { viewport } = _renderer;
     let cache = { row: 0, col: 0 };
     if (_selector && viewport) {
       const { offsetX, offsetY, ctrlKey, metaKey, shiftKey } = evt;
@@ -718,8 +718,8 @@ function canvasBindMousedown(t: Table, hcanvas: HElement) {
 
 function canvasBindMousemove(t: Table, hcanvas: HElement) {
   hcanvas.on('mousemove', (evt) => {
-    const { _rowResizer, _colResizer, _render } = t;
-    const { viewport } = _render;
+    const { _rowResizer, _colResizer, _renderer } = t;
+    const { viewport } = _renderer;
     const { buttons, offsetX, offsetY } = evt;
     // press the mouse left button
     if (viewport && buttons === 0) {

@@ -1,4 +1,4 @@
-import { Cell, CellStyle, Border, Row, Col } from 'table-render';
+import { Cell, CellStyle, Border, Row, Col } from 'table-renderer';
 import Cells from './cells';
 import { scrollx, scrolly, scrollResetRows, scrollResetCols } from './scroll';
 
