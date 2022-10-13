@@ -641,7 +641,7 @@ function initEditor(t: Table) {
 
 function showEditor(t: Table, resetValue = true) {
   const { _selector, _editor } = t;
-  if (_selector && _editor) {
+  if (_selector && _editor && _editor.visible) {
     if (_selector && _selector._placement === 'body') {
       const { focusRange, focusRect, focusTarget } = _selector;
       if (focusRange && focusRect && focusTarget) {

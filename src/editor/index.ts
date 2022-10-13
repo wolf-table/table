@@ -14,6 +14,7 @@ export default class Editor {
   _rect: Rect | null = null;
   _value: string = '';
   _editing: boolean = false;
+  _visible: boolean = false;
 
   _maxWidth: () => number;
   _maxHeight: () => number;
@@ -50,6 +51,10 @@ export default class Editor {
       });
   }
 
+  get visible() {
+    return this._visible;
+  }
+
   appendTo(target: HElement): Editor {
     target.append(this._);
     return this;
@@ -76,6 +81,7 @@ export default class Editor {
 
   show(rect: Rect | null) {
     if (rect) {
+      this._visible = true;
       this._rect = rect;
       const { x, y, width, height } = rect;
       this._.css({
@@ -95,6 +101,7 @@ export default class Editor {
 
   hide() {
     this._editing = false;
+    this._visible = false;
     this.value('');
     this._.hide();
   }
