@@ -9,7 +9,7 @@ import TableRenderer, {
   Range,
   Area,
   Border,
-  CellFormatter,
+  Formatter,
 } from 'table-renderer';
 import {
   defaultData,
@@ -23,11 +23,10 @@ import {
   merge,
   unmerge,
   isMerged,
-  rangeUnoinMerges,
   scrollx,
   scrolly,
   Cells,
-  CellFormulaFunc,
+  FormulaParser,
   DataCell,
   addStyle,
   clearStyles,
@@ -310,12 +309,12 @@ export default class Table {
     return rowsHeight(this._data, min, max);
   }
 
-  cellFormula(v: CellFormulaFunc): Table {
-    this._cells.formula(v);
+  formulaParser(v: FormulaParser): Table {
+    this._cells.formulaParser(v);
     return this;
   }
 
-  cellFormatter(v: CellFormatter) {
+  formatter(v: Formatter) {
     this._cells.formatter(v);
     return this;
   }
@@ -372,7 +371,7 @@ export default class Table {
       .cell((r, c) => {
         return this.cell(r, c);
       })
-      .cellFormatter(this._cells._formatter)
+      .formatter(this._cells._formatter)
       .render();
 
     // viewport
@@ -769,7 +768,7 @@ function canvasBindDblclick(t: Table, hcanvas: HElement) {
 function canvasBindKeydown(t: Table, hcanvas: HElement) {
   hcanvas.on('keydown', (evt) => {
     const { ctrlKey, shiftKey, metaKey, altKey, code } = evt;
-    console.log('code:', code);
+    // console.log('code:', code);
     let direction = null;
     if (code === 'Enter' && !ctrlKey && !metaKey && !altKey) {
       if (shiftKey) {

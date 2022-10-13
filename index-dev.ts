@@ -16,7 +16,7 @@ const t = WolfTable.create(
   .merge('F10:G11')
   .merge('I10:K11')
   .addBorder(['E8:L12', 'all', 'medium', '#21ba45'])
-  .cellFormula((v) => `${v}-formula`)
+  .formulaParser((v) => `${v}-formula`)
   .data({
     styles: [
       { bold: true, strikethrough: true, color: '#21ba45', italic: true, align: 'center', fontSize: 12 },

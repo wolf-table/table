@@ -37,7 +37,7 @@ export type TableData = {
   cells?: DataIndexCell[];
 };
 
-export type CellFormulaFunc = (formula: string) => string | number;
+export type FormulaParser = (formula: string) => string | number;
 
 export function defaultData(): TableData {
   return {

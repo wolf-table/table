@@ -1,21 +1,21 @@
-import { CellFormatter } from 'table-renderer';
-import { DataIndexCell, DataCell, TableData, CellFormulaFunc } from '.';
+import { Formatter } from 'table-renderer';
+import { DataIndexCell, DataCell, TableData, FormulaParser } from '.';
 
 export default class Cells {
   _: DataIndexCell[] = [];
   _indexes = new Map();
   _formulas: number[] = [];
-  _formula: CellFormulaFunc = (v) => v;
-  _formatter: CellFormatter = (v) => v;
+  _formulaParser: FormulaParser = (v) => v;
+  _formatter: Formatter = (v) => v;
 
   constructor() {}
 
-  formula(v: CellFormulaFunc) {
-    this._formula = v;
+  formulaParser(v: FormulaParser) {
+    this._formulaParser = v;
     return this;
   }
 
-  formatter(v: CellFormatter) {
+  formatter(v: Formatter) {
     this._formatter = v;
     return this;
   }
@@ -73,7 +73,7 @@ export default class Cells {
 
   private addFormula(cell: DataCell, index: number) {
     if (cell instanceof Object && cell.formula) {
-      cell.value = this._formula(cell.formula);
+      cell.value = this._formulaParser(cell.formula);
       this._formulas.push(index);
     }
   }
@@ -82,7 +82,7 @@ export default class Cells {
     this._formulas.forEach((index) => {
       const [, , cell] = this._[index];
       if (cell instanceof Object) {
-        cell.value = this._formula(cell.formula);
+        cell.value = this._formulaParser(cell.formula);
       }
     });
   }
