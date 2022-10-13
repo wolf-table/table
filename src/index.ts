@@ -25,6 +25,8 @@ import {
   isMerged,
   scrollx,
   scrolly,
+  cellValue,
+  cellValueString,
   Cells,
   FormulaParser,
   DataCell,
@@ -354,6 +356,10 @@ export default class Table {
     return _cells.get(row, col);
   }
 
+  cellValue(row: number, col: number) {
+    return cellValue(this.cell(row, col));
+  }
+
   render() {
     this._renderer
       .colHeader(this._colHeader)
@@ -580,7 +586,7 @@ function initScrollbars(t: Table) {
     if (scrolly(t._data, direction, value)) {
       t.render();
       resetSelector(t);
-      showEditor(t, false);
+      moveEditor(t);
     }
   });
 
@@ -588,7 +594,7 @@ function initScrollbars(t: Table) {
     if (scrollx(t._data, direction, value)) {
       t.render();
       resetSelector(t);
-      showEditor(t, false);
+      moveEditor(t);
     }
   });
 }
@@ -639,25 +645,32 @@ function initEditor(t: Table) {
   });
 }
 
-function showEditor(t: Table, resetValue = true) {
+function moveEditor(t: Table) {
+  const { _editor, _selector } = t;
+  if (_editor && _selector) {
+    if (_editor.visible && _selector._placement === 'body') {
+      const { focusRect, focusTarget } = _selector;
+      if (focusRect && focusTarget) {
+        _editor.appendTo(focusTarget).show(focusRect);
+      } else {
+        _editor.show({ x: -100, y: -100, width: 0, height: 0 });
+      }
+    }
+  }
+}
+
+function resetEditor(t: Table) {
   const { _selector, _editor } = t;
-  if (_selector && _editor && _editor.visible) {
-    if (_selector && _selector._placement === 'body') {
+  if (_selector && _editor) {
+    if (_selector._placement === 'body') {
       const { focusRange, focusRect, focusTarget } = _selector;
       if (focusRange && focusRect && focusTarget) {
         _editor.appendTo(focusTarget).show(focusRect);
-        if (resetValue) {
-          const cell = t.cell(focusRange.startRow, focusRange.startCol);
-          if (cell) {
-            const text = cell instanceof Object ? cell.value : cell;
-            _editor.value(text + '');
-          }
+        const cell = t.cell(focusRange.startRow, focusRange.startCol);
+        if (cell) {
+          _editor.value(cellValueString(cell));
         }
-      } else {
-        _editor.hide();
       }
-    } else {
-      _editor.hide();
     }
   }
 }
@@ -761,7 +774,7 @@ function canvasBindWheel(t: Table, hcanvas: HElement) {
 
 function canvasBindDblclick(t: Table, hcanvas: HElement) {
   hcanvas.on('dblclick.prevent', () => {
-    showEditor(t);
+    resetEditor(t);
   });
 }
 
@@ -805,7 +818,7 @@ function canvasBindKeydown(t: Table, hcanvas: HElement) {
       ].includes(code)
     ) {
       // editor
-      showEditor(t);
+      resetEditor(t);
     }
     if (direction) {
       tableMoveSelector(t, direction);

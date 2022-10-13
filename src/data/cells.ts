@@ -87,3 +87,12 @@ export default class Cells {
     });
   }
 }
+
+export function cellValue(cell: DataCell) {
+  return cell instanceof Object ? cell.value : cell;
+}
+
+export function cellValueString(cell: DataCell) {
+  const v = cellValue(cell);
+  return `${v !== null && v !== undefined ? v : ''}`;
+}

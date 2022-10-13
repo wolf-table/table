@@ -1,5 +1,5 @@
 import { Cell, CellStyle, Border, Row, Col } from 'table-renderer';
-import Cells from './cells';
+import Cells, { cellValue, cellValueString } from './cells';
 import { scrollx, scrolly, scrollResetRows, scrollResetCols } from './scroll';
 
 import { isMerged, merge, unmerge, rangeUnoinMerges } from './merge';
@@ -87,4 +87,6 @@ export {
   scrollResetRows,
   scrollResetCols,
   Cells,
+  cellValue,
+  cellValueString,
 };
