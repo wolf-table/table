@@ -114,6 +114,8 @@ export default class Table {
   _selector: Selector | null = null;
   _overlayer: Overlayer;
 
+  _canvas: HElement;
+
   constructor(
     element: HTMLElement | string,
     width: () => number,
@@ -173,6 +175,8 @@ export default class Table {
     if (options?.editable) {
       initEditor(this);
     }
+
+    this._canvas = hcanvas;
 
     canvasBindWheel(this, hcanvas);
     canvasBindMousemove(this, hcanvas);
@@ -619,6 +623,7 @@ function initResizers(t: Table) {
     (value, { row, height }) => {
       t.rowHeight(row, height + value).render();
       resetSelector(t);
+      t._canvas.focus();
     }
   );
   t._colResizer = new Resizer(
@@ -629,6 +634,7 @@ function initResizers(t: Table) {
     (value, { col, width }) => {
       t.colWidth(col, width + value).render();
       resetSelector(t);
+      t._canvas.focus();
     }
   );
 }
@@ -640,6 +646,7 @@ function initEditor(t: Table) {
   _editor.moveChange((direction, value) => {
     if (direction !== 'none' && _selector) {
       tableMoveSelector(t, direction);
+      t._canvas.focus();
     }
     setSelectedRangesValue(t, value);
   });
@@ -779,9 +786,9 @@ function canvasBindDblclick(t: Table, hcanvas: HElement) {
 }
 
 function canvasBindKeydown(t: Table, hcanvas: HElement) {
-  hcanvas.on('keydown', (evt) => {
+  hcanvas.on('keydown.prevent', async (evt) => {
     const { ctrlKey, shiftKey, metaKey, altKey, code } = evt;
-    // console.log('code:', code);
+    console.log('code:', code, evt);
     let direction = null;
     if (code === 'Enter' && !ctrlKey && !metaKey && !altKey) {
       if (shiftKey) {
@@ -789,36 +796,44 @@ function canvasBindKeydown(t: Table, hcanvas: HElement) {
       } else {
         direction = 'down';
       }
-      evt.preventDefault();
     } else if (code === 'Tab' && !ctrlKey && !metaKey && !altKey) {
       if (shiftKey) {
         direction = 'left';
       } else {
         direction = 'right';
       }
-      evt.preventDefault();
     } else if (code.startsWith('Arrow')) {
       direction = code.substring(5).toLowerCase();
-      evt.preventDefault();
     } else if (
-      code.startsWith('Key') ||
-      code.startsWith('Digit') ||
-      [
-        'Minus',
-        'Equal',
-        'Space',
-        'BracketLeft',
-        'BracketRight',
-        'Backslash',
-        'Semicolon',
-        'Quote',
-        'Comma',
-        'Period',
-        'Slash',
-      ].includes(code)
+      !ctrlKey &&
+      !metaKey &&
+      !altKey &&
+      (code.startsWith('Key') ||
+        code.startsWith('Digit') ||
+        [
+          'Minus',
+          'Equal',
+          'Space',
+          'BracketLeft',
+          'BracketRight',
+          'Backslash',
+          'Semicolon',
+          'Quote',
+          'Comma',
+          'Period',
+          'Slash',
+        ].includes(code))
     ) {
       // editor
       resetEditor(t);
+    } else if (code === 'KeyC' && (ctrlKey || metaKey)) {
+      // copy
+      console.log('copy');
+    } else if (code === 'KeyV' && (ctrlKey || metaKey)) {
+      const text = await navigator.clipboard.readText();
+      console.log('Pasted text: ', text);
+      // paste
+      console.log('paste');
     }
     if (direction) {
       tableMoveSelector(t, direction);

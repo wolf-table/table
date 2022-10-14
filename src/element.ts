@@ -68,6 +68,11 @@ export default class HElement {
     return this;
   }
 
+  focus() {
+    this._.focus();
+    return this;
+  }
+
   value(): string;
   value(v: string): HElement;
   value(v?: string): any {

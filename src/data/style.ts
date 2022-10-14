@@ -1,5 +1,5 @@
 import { TableData } from '.';
-import { CellStyle } from 'table-render';
+import { CellStyle } from 'table-renderer';
 import { equals } from '../helper';
 
 export function addStyle(t: TableData, value: Partial<CellStyle>): number {
