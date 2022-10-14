@@ -1,12 +1,16 @@
-import { Range, Rect } from 'table-render';
+import { Range, Rect } from 'table-renderer';
 import { TableData } from '../data';
 import HElement from '../element';
 declare type Placement = 'all' | 'row-header' | 'col-header' | 'body';
 export default class Selector {
+    oldRanges: Range[];
     ranges: Range[];
     rowHeaderRanges: Range[];
     colHeaderRanges: Range[];
-    _startRange: Range | null;
+    focus: [number, number];
+    focusRange: Range | null;
+    focusRect: Rect | null;
+    focusTarget: HElement | null;
     _placement: Placement;
     _data: TableData;
     _areas: HElement[];
@@ -17,11 +21,14 @@ export default class Selector {
     _targets: HElement[];
     _targetChildren: Node[][];
     constructor(data: TableData);
-    placement(value: Placement): this;
-    addRange(row: number, col: number, clear?: boolean): this;
-    unionRange(row: number, col: number): this;
+    placement(): Placement;
+    placement(value: Placement): Selector;
+    addRange(r: number, c: number, clear?: boolean): this;
+    unionRange(r: number, c: number): this;
     clearRanges(): this;
-    addAreaRect(rangeIndex: number, { x, y, width, height }: Rect): this;
+    move(type: 'up' | 'down' | 'left' | 'right', step: number): void;
+    setFocusRectAndTarget(rect: Rect, target: HElement): void;
+    addAreaRect(rangeIndex: number, rect: Rect): this;
     addRowHeaderAreaRect({ x, y, width, height }: Rect): this;
     addColHeaderAreaRect({ x, y, width, height }: Rect): this;
     addTarget(target: HElement): this;

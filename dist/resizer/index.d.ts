@@ -1,4 +1,4 @@
-import { AreaCell } from 'table-render';
+import { AreaCell } from 'table-renderer';
 import HElement from '../element';
 export declare type ResizerType = 'row' | 'col';
 export default class Resizer {

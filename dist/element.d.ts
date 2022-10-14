@@ -9,15 +9,27 @@ export default class HElement {
     _: HTMLElement;
     _data: Map<any, any>;
     constructor(tag: string | Node, className?: string | string[] | Object);
+    element(): any;
     data(key: string): any;
     data(key: string, value: any): HElement;
     on(eventName: string, handler: (evt: any) => void): this;
+    focus(): this;
+    value(): string;
+    value(v: string): HElement;
+    textContent(v: string): this;
+    html(v: string): this;
     attr(key: string): string;
     attr(key: string, value: string): HElement;
     css(key: string): string;
     css(props: CSSAttrs): HElement;
     css(key: string, value: string): HElement;
     rect(): DOMRect;
+    offset(): {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    };
     show(flag?: boolean): this;
     hide(): this;
     scrollx(): number;
@@ -32,3 +44,4 @@ export default class HElement {
     get firstChild(): HElement | null;
 }
 export declare function h(tag: string | HTMLElement, className?: string | string[] | Object): HElement;
+export declare function textWidth(text: string, fontSize: string, fontFamily: string): number;

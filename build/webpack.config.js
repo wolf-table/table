@@ -5,7 +5,6 @@ module.exports = {
   entry: {
     table: './src/index.ts',
   },
-  devtool: 'inline-source-map',
   plugins: [new MiniCssExtractPlugin()],
   module: {
     rules: [

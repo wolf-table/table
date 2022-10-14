@@ -1,10 +1,7 @@
 import { TableData } from '.';
-export default class Scroll {
-    _value: [number, number];
-    _data: () => TableData;
-    constructor(data: () => TableData);
-    x(): number;
-    x(direction: '+' | '-', n: number): boolean;
-    y(): number;
-    y(direction: '+' | '-', n: number): boolean;
-}
+export declare function scrollx(data: TableData): number;
+export declare function scrollx(data: TableData, direction: '+' | '-', n: number): boolean;
+export declare function scrolly(data: TableData): number;
+export declare function scrolly(data: TableData, direction: '+' | '-', n: number): boolean;
+export declare function scrollResetRows(data: TableData): void;
+export declare function scrollResetCols(data: TableData): void;

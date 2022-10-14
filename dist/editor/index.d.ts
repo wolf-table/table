@@ -1,0 +1,31 @@
+import HElement from '../element';
+import { Rect } from 'table-renderer';
+declare type MoveDirection = 'up' | 'down' | 'left' | 'right' | 'none';
+declare type InputChanger = (value: string) => void;
+declare type moveChanger = (direction: MoveDirection, value: string) => void;
+export default class Editor {
+    _: HElement;
+    _text: HElement;
+    _textMeasure: HElement;
+    _rect: Rect | null;
+    _value: string;
+    _editing: boolean;
+    _visible: boolean;
+    _maxWidth: () => number;
+    _maxHeight: () => number;
+    _fontSize: string;
+    _fontFamily: string;
+    _inputChange: InputChanger;
+    _moveChange: moveChanger;
+    constructor(target: HElement, maxWidth: () => number, maxHeight: () => number, fontSize: string, fontFamily: string);
+    get visible(): boolean;
+    appendTo(target: HElement): Editor;
+    value(): string;
+    value(text: string): void;
+    finished(): void;
+    show(rect: Rect | null): void;
+    hide(): void;
+    inputChange(value: InputChanger): void;
+    moveChange(value: moveChanger): void;
+}
+export {};

@@ -1,11 +1,12 @@
 import './style.index.less';
-import TableRender, { CellStyle, ColHeader, RowHeader } from 'table-render';
-import { TableData, Cells, FormulaFunc, DataCell } from './data';
+import TableRenderer, { CellStyle, ColHeader, RowHeader, Rect, Border, Formatter } from 'table-renderer';
+import { TableData, Cells, FormulaParser, DataCell, DataRow, DataCol } from './data';
 import HElement from './element';
 import Scrollbar from './scrollbar';
 import Resizer from './resizer';
 import Selector from './selector';
 import Overlayer from './overlayer';
+import Editor from './editor';
 export declare type TableOptions = {
     rowHeight?: number;
     colWidth?: number;
@@ -19,6 +20,7 @@ export declare type TableOptions = {
     scrollable?: boolean;
     resizable?: boolean;
     selectable?: boolean;
+    editable?: boolean;
 };
 export default class Table {
     _colHeader: ColHeader;
@@ -27,19 +29,23 @@ export default class Table {
     _minColWidth: number;
     _width: () => number;
     _height: () => number;
+    _contentRect: Rect;
     _container: HElement;
     _data: TableData;
-    _render: TableRender;
+    _renderer: TableRenderer;
     _cells: Cells;
     _vScrollbar: Scrollbar | null;
     _hScrollbar: Scrollbar | null;
     _rowResizer: Resizer | null;
     _colResizer: Resizer | null;
+    _editor: Editor | null;
     _selector: Selector | null;
     _overlayer: Overlayer;
+    _canvas: HElement;
     constructor(element: HTMLElement | string, width: () => number, height: () => number, options?: TableOptions);
     data(): TableData;
     data(data: Partial<TableData>): Table;
+    contentRect(): Rect;
     resize(): void;
     freeze(ref: string): this;
     isMerged(): boolean;
@@ -48,14 +54,26 @@ export default class Table {
     merge(ref: string): Table;
     unmerge(): Table;
     unmerge(ref: string): Table;
-    rowHeight(index: number, value: number): this;
-    colWidth(index: number, value: number): this;
+    row(index: number): DataRow;
+    row(index: number, value: Partial<DataRow>): Table;
+    rowHeight(index: number): number;
+    rowHeight(index: number, value: number): Table;
+    col(index: number): DataCol;
+    col(index: number, value: Partial<DataCol>): Table;
+    colWidth(index: number): number;
+    colWidth(index: number, value: number): Table;
     colsWidth(min: number, max: number): number;
     rowsHeight(min: number, max: number): number;
-    formula(v: FormulaFunc): Table;
+    formulaParser(v: FormulaParser): Table;
+    formatter(v: Formatter): this;
     addStyle(value: Partial<CellStyle>): number;
+    clearStyles(): this;
+    addBorder(value: Border): this;
+    clearBorder(value: string): this;
+    clearBorders(): this;
     cell(row: number, col: number): DataCell;
     cell(row: number, col: number, value: DataCell): Table;
+    cellValue(row: number, col: number): string | number | null | undefined;
     render(): this;
     static create(element: HTMLElement | string, width: () => number, height: () => number, options?: TableOptions): Table;
 }
