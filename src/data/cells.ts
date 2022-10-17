@@ -1,5 +1,5 @@
 import { Formatter } from 'table-renderer';
-import { DataIndexCell, DataCell, TableData, FormulaParser } from '.';
+import { DataIndexCell, DataCell, TableData, FormulaParser, DataCellValue } from '.';
 
 export default class Cells {
   _: DataIndexCell[] = [];
@@ -88,11 +88,11 @@ export default class Cells {
   }
 }
 
-export function cellValue(cell: DataCell) {
+export function cellValue(cell: DataCell): DataCellValue {
   return cell instanceof Object ? cell.value : cell;
 }
 
-export function cellValueString(cell: DataCell) {
+export function cellValueString(cell: DataCell): string {
   const v = cellValue(cell);
   return `${v !== null && v !== undefined ? v : ''}`;
 }

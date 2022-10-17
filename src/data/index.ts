@@ -22,6 +22,7 @@ export type DataCols = {
 
 export type DataCell = Cell;
 export type DataIndexCell = [number, number, DataCell];
+export type DataCellValue = string | number | null | undefined;
 
 export type TableData = {
   rows: DataRows;
