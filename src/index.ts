@@ -1,10 +1,10 @@
 import './style.index.less';
+import { stylePrefix } from './config';
 import HElement, { h } from './element';
 import Scrollbar from './scrollbar';
 import Resizer from './resizer';
 import Selector from './selector';
 import Overlayer from './overlayer';
-import { stylePrefix } from './config';
 import Editor from './editor';
 import TableRenderer, {
   stringAt,
@@ -42,18 +42,10 @@ import {
   DataCol,
   DataCellValue,
 } from './data';
-import {
-  canvasBindDblclick,
-  canvasBindKeydown,
-  canvasBindMousedown,
-  canvasBindMousemove,
-  canvasBindWheel,
-  initEditor,
-  initResizers,
-  initScrollbars,
-  resizeContentRect,
-  resizeScrollbars,
-} from './index.functions';
+import resizer from './index.resizer';
+import scrollbar from './index.scrollbar';
+import editor from './index.editor';
+import { initEvents } from './index.event';
 
 export type TableOptions = {
   rowHeight?: number;
@@ -159,38 +151,29 @@ export default class Table {
 
     const canvasElement = document.createElement('canvas');
     // tabIndex for trigger keydown event
-    const hcanvas = h(canvasElement).attr('tabIndex', '1');
+    this._canvas = h(canvasElement).attr('tabIndex', '1');
     this._container.append(canvasElement);
     this._renderer = new TableRenderer(canvasElement, width(), height());
-
     this._overlayer = new Overlayer(this._container);
-
-    // scroll
-    if (options?.scrollable) {
-      // init scrollbars
-      initScrollbars(this);
-    }
-
-    if (options?.resizable) {
-      // init resizers
-      initResizers(this);
-    }
 
     if (options?.selectable) {
       this._selector = new Selector(this._data);
     }
 
-    if (options?.editable) {
-      initEditor(this);
+    // scroll
+    if (options?.scrollable) {
+      scrollbar.init(this);
     }
 
-    this._canvas = hcanvas;
+    if (options?.resizable) {
+      resizer.init(this);
+    }
 
-    canvasBindWheel(this, hcanvas);
-    canvasBindMousemove(this, hcanvas);
-    canvasBindMousedown(this, hcanvas);
-    canvasBindDblclick(this, hcanvas);
-    canvasBindKeydown(this, hcanvas);
+    if (options?.editable) {
+      editor.init(this);
+    }
+
+    initEvents(this);
   }
 
   contentRect() {
@@ -389,7 +372,7 @@ export default class Table {
       viewport.headerAreas.forEach((rect, index) => {
         _overlayer.headerArea(index, rect);
       });
-      resizeScrollbars(this);
+      scrollbar.resize(this);
     }
     return this;
   }
@@ -452,6 +435,15 @@ export default class Table {
   ): Table {
     return new Table(element, width, height, options);
   }
+}
+
+function resizeContentRect(t: Table) {
+  t._contentRect = {
+    x: t._rowHeader.width,
+    y: t._colHeader.height,
+    width: colsWidth(t._data),
+    height: rowsHeight(t._data),
+  };
 }
 
 declare global {
