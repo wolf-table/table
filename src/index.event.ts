@@ -72,7 +72,7 @@ function mousemoveHandler(t: Table, evt: any) {
   const { buttons, offsetX, offsetY } = evt;
   // press the mouse left button
   if (viewport && buttons === 0) {
-    const { _rowHeader, _colHeader } = t;
+    const { _rowHeader, _colHeader } = t._renderer;
     if (_rowResizer && _rowHeader.width > 0) {
       if (offsetX < _rowHeader.width && offsetY > _colHeader.height) {
         const cell = viewport.cellAt(offsetX, offsetY);
@@ -158,6 +158,7 @@ function keydownHandler(t: Table, evt: any) {
         clipboardItems[0].getType('text/html').then((blob) => {
           blob.text().then((text) => {
             console.log('text', text);
+            t.fill(text).render();
           });
         });
       }

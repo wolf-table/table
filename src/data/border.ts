@@ -46,7 +46,5 @@ export function clearBorder(t: TableData, ref: string) {
 }
 
 export function clearBorders(t: TableData) {
-  if (t.borders) {
-    delete t.borders;
-  }
+  t.borders.length = 0;
 }

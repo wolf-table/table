@@ -1,4 +1,4 @@
-import { Cell, CellStyle, Border, Row, Col } from 'table-renderer';
+import { Cell, Style, Border, Row, Col } from 'table-renderer';
 import Cells, { cellValue, cellValueString } from './cells';
 import { scrollx, scrolly, scrollResetRows, scrollResetCols } from './scroll';
 
@@ -30,12 +30,12 @@ export type TableData = {
   rowHeight: number;
   colWidth: number;
   scroll: [number, number, number, number]; // rows, cols, x, y
-  style: CellStyle;
-  styles?: Partial<CellStyle>[];
-  borders?: Border[];
+  style: Style;
+  styles: Partial<Style>[];
+  borders: Border[];
+  merges: string[];
+  cells: DataIndexCell[];
   freeze?: string;
-  merges?: string[];
-  cells?: DataIndexCell[];
 };
 
 export type FormulaParser = (formula: string) => string | number;
@@ -52,7 +52,7 @@ export function defaultData(): TableData {
     colWidth: 100,
     scroll: [0, 0, 0, 0],
     style: {
-      fontName: 'Helvetica',
+      fontFamily: 'Helvetica',
       fontSize: 10,
       color: '#333',
       bgcolor: '#fff',
@@ -64,6 +64,10 @@ export function defaultData(): TableData {
       underline: false,
       strikethrough: false,
     },
+    styles: [],
+    borders: [],
+    merges: [],
+    cells: [],
   };
 }
 

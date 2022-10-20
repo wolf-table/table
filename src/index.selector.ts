@@ -16,8 +16,8 @@ function setCellValue(t: Table, value: string) {
 }
 
 function reset(t: Table) {
-  const { _selector, _overlayer, _container, _rowHeader, _colHeader } = t;
-  const { viewport } = t._renderer;
+  const { _selector, _overlayer, _container } = t;
+  const { _rowHeader, _colHeader, viewport } = t._renderer;
   if (_selector && viewport) {
     const { _placement } = _selector;
     _selector.clearTargets();

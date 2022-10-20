@@ -7,8 +7,7 @@ import Selector from './selector';
 import Overlayer from './overlayer';
 import Editor from './editor';
 import TableRenderer, {
-  stringAt,
-  CellStyle,
+  Style,
   ColHeader,
   RowHeader,
   Range,
@@ -16,6 +15,7 @@ import TableRenderer, {
   Border,
   Formatter,
   expr2xy,
+  Gridline,
 } from 'table-renderer';
 import {
   defaultData,
@@ -46,40 +46,39 @@ import resizer from './index.resizer';
 import scrollbar from './index.scrollbar';
 import editor from './index.editor';
 import { initEvents } from './index.event';
+import { fromHtml, toHtml } from './index.html';
 
-export type TableOptions = {
-  rowHeight?: number;
-  colWidth?: number;
-  minRowHeight?: number;
-  minColWidth?: number;
-  rows?: number;
-  cols?: number;
-  cellStyle?: Partial<CellStyle>;
+export type TableRendererOptions = {
+  style?: Partial<Style>;
+  headerStyle?: Partial<Style>;
   rowHeader?: Partial<RowHeader>;
   colHeader?: Partial<ColHeader>;
+  gridline?: Partial<Gridline>;
+  headerGridline?: Partial<Gridline>;
+  freeGridline?: Partial<Gridline>;
+};
+
+export type TableDataOptions = {
+  rows?: number;
+  cols?: number;
+  rowHeight?: number;
+  colWidth?: number;
+};
+
+export type TableOptions = {
+  minRowHeight?: number;
+  minColWidth?: number;
   scrollable?: boolean;
   resizable?: boolean;
   selectable?: boolean;
   editable?: boolean;
+  data?: TableDataOptions;
+  renderer?: TableRendererOptions;
 };
 
 export default class Table {
-  // for render
-  _colHeader: ColHeader = {
-    height: 25,
-    rows: 1,
-    cell(rowIndex, colIndex) {
-      return stringAt(colIndex);
-    },
-  };
-  // for render
-  _rowHeader: RowHeader = {
-    width: 60,
-    cols: 1,
-    cell(rowIndex, colIndex) {
-      return rowIndex + 1;
-    },
-  };
+  // renderer options
+  _rendererOptions: TableRendererOptions = {};
 
   _minRowHeight: number = 25;
 
@@ -132,22 +131,23 @@ export default class Table {
 
     // update default data
     if (options) {
-      const { cols, rows, rowHeight, colWidth, minRowHeight, minColWidth, cellStyle, rowHeader, colHeader } =
-        options;
-      const { _data } = this;
-      if (minRowHeight) this._minRowHeight = minRowHeight;
+      const { minColWidth, minRowHeight, renderer, data } = options;
       if (minColWidth) this._minColWidth = minColWidth;
-      if (cols) _data.cols.len = cols;
-      if (rows) _data.rows.len = rows;
-      if (rowHeight) _data.rowHeight = rowHeight;
-      if (colWidth) _data.colWidth = colWidth;
-      if (cellStyle) Object.assign(_data.style, cellStyle);
-      if (rowHeader) Object.assign(this._rowHeader, rowHeader);
-      if (colHeader) Object.assign(this._colHeader, colHeader);
-    }
+      if (minRowHeight) this._minRowHeight = minRowHeight;
 
-    // resize rect of content
-    resizeContentRect(this);
+      if (renderer) {
+        this._rendererOptions = renderer;
+      }
+
+      if (data) {
+        const { cols, rows, rowHeight, colWidth } = data;
+        const { _data } = this;
+        if (cols) _data.cols.len = cols;
+        if (rows) _data.rows.len = rows;
+        if (rowHeight) _data.rowHeight = rowHeight;
+        if (colWidth) _data.colWidth = colWidth;
+      }
+    }
 
     const canvasElement = document.createElement('canvas');
     // tabIndex for trigger keydown event
@@ -155,6 +155,9 @@ export default class Table {
     this._container.append(canvasElement);
     this._renderer = new TableRenderer(canvasElement, width(), height());
     this._overlayer = new Overlayer(this._container);
+
+    // resize rect of content
+    resizeContentRect(this);
 
     if (options?.selectable) {
       this._selector = new Selector(this._data);
@@ -186,7 +189,7 @@ export default class Table {
   }
 
   freeze(ref: string) {
-    if (ref) this._data.freeze = ref;
+    this._data.freeze = ref;
     return this;
   }
 
@@ -303,7 +306,7 @@ export default class Table {
     return this;
   }
 
-  addStyle(value: Partial<CellStyle>) {
+  addStyle(value: Partial<Style>) {
     return addStyle(this._data, value);
   }
 
@@ -312,7 +315,7 @@ export default class Table {
     return this;
   }
 
-  addBorder(value: Border) {
+  addBorder(...value: Border) {
     addBorder(this._data, value);
     return this;
   }
@@ -343,19 +346,22 @@ export default class Table {
   }
 
   render() {
+    for (let prop in this._rendererOptions) {
+      const propValue = (this._rendererOptions as any)[prop];
+      if (propValue) (this._renderer as any)[prop](propValue);
+    }
+    const { _data } = this;
     this._renderer
-      .colHeader(this._colHeader)
-      .rowHeader(this._rowHeader)
-      .scrollRows(this._data.scroll[0])
-      .scrollCols(this._data.scroll[1])
-      .merges(this._data.merges)
-      .freeze(this._data.freeze)
-      .styles(this._data.styles)
-      .borders(this._data.borders)
-      .rows(this._data.rows.len)
-      .cols(this._data.cols.len)
-      .row((index) => row(this._data, index))
-      .col((index) => col(this._data, index))
+      .scrollRows(_data.scroll[0])
+      .scrollCols(_data.scroll[1])
+      .merges(_data.merges)
+      .freeze(_data.freeze)
+      .styles(_data.styles)
+      .borders(_data.borders)
+      .rows(_data.rows.len)
+      .cols(_data.cols.len)
+      .row((index) => row(_data, index))
+      .col((index) => col(_data, index))
       .cell((r, c) => {
         return this.cell(r, c);
       })
@@ -392,20 +398,29 @@ export default class Table {
 
   /**
    * @param html <table><tr><td style="color: white">test</td></tr></table>
-   * @param to A1 or B9...
+   * @param to A1 or B9
    */
+  fill(html: string): Table;
   fill(html: string, to: string): Table;
   fill(arrays: DataCellValue[][], to: string): Table;
-  fill(data: any, to: string): Table {
-    const [sc, sr] = expr2xy(to);
+  fill(data: any, to?: string): Table {
+    let [startRow, startCol] = [0, 0];
+    if (to) {
+      [startCol, startRow] = expr2xy(to);
+    } else {
+      const { _selector } = this;
+      if (!_selector) return this;
+      [startRow, startCol] = _selector.focus;
+    }
     if (Array.isArray(data)) {
       for (let i = 0; i < data.length; i += 1) {
         const row = data[i];
         for (let j = 0; j < row.length; j += 1) {
-          this.cell(sr + i, sc + j, row[j]);
+          this.cell(startRow + i, startCol + j, row[j]);
         }
       }
     } else if (typeof data === 'string') {
+      fromHtml(this, data, [startRow, startCol]);
     }
     return this;
   }
@@ -413,7 +428,10 @@ export default class Table {
   /**
    * @param from A1:H12
    */
-  toHtml(from: string) {}
+  toHtml(from: string) {
+    return toHtml(this, from);
+  }
+
   toArrays(from: string): DataCellValue[][] {
     const range = Range.with(from);
     const arrays: DataCellValue[][] = [];
@@ -439,8 +457,8 @@ export default class Table {
 
 function resizeContentRect(t: Table) {
   t._contentRect = {
-    x: t._rowHeader.width,
-    y: t._colHeader.height,
+    x: t._renderer._rowHeader.width,
+    y: t._renderer._colHeader.height,
     width: colsWidth(t._data),
     height: rowsHeight(t._data),
   };
