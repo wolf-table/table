@@ -1,4 +1,5 @@
 import Table from '.';
+import { DataCellValue } from './data';
 import selector from './index.selector';
 import editor from './index.editor';
 import { bind, unbind } from './event';
@@ -151,30 +152,73 @@ function keydownHandler(t: Table, evt: any) {
     // copy
     console.log('copy');
   } else if (code === 'KeyV' && (ctrlKey || metaKey)) {
-    console.log('Pasted text: ', navigator.clipboard);
-    // const text = await navigator.clipboard.readText();
+    // console.log('Pasted text: ', navigator.clipboard);
     navigator.clipboard.read().then((clipboardItems) => {
       if (clipboardItems.length > 0) {
-        clipboardItems[0].getType('text/html').then((blob) => {
-          blob.text().then((text) => {
-            console.log('text', text);
-            t.fill(text).render();
+        const item = clipboardItems[0];
+        let onlyCopyText = shiftKey;
+        if (!onlyCopyText) {
+          onlyCopyText = !getClipboardText(item, 'text/html', (text) => t.fill(text).render());
+        }
+        if (onlyCopyText) {
+          getClipboardText(item, 'text/plain', (text) => {
+            t.fill(toArraysFromClipboardText(text)).render();
           });
-        });
+        }
       }
     });
-    /*
-      for (const type of clipboardItem.types) {
-        const blob = await clipboardItem.getType(type);
-        console.log(await blob.text());
-        console.log(URL.createObjectURL(blob));
-      }
-      */
-    // paste
-    console.log('paste');
   }
   if (direction) {
     selector.move(t, direction);
     evt.preventDefault();
   }
+}
+
+function toArraysFromClipboardText(text: string) {
+  const arrays: DataCellValue[][] = [];
+  let [rIndex, cIndex] = [0, 0];
+  let str = '';
+  let doubleQuotedTimesInStr = 0;
+
+  const addStr = () => {
+    arrays[rIndex] ||= [];
+    arrays[rIndex][cIndex] = str;
+    str = '';
+  };
+
+  for (let char of text) {
+    // console.log('char:', char);
+    if (char === '\t') {
+      addStr();
+      cIndex += 1;
+      doubleQuotedTimesInStr = 0;
+      continue;
+    }
+    if (char === '\n' && doubleQuotedTimesInStr !== 1) {
+      addStr();
+      rIndex += 1;
+      cIndex = 0;
+      continue;
+    }
+    if (char !== '"') {
+      if (char !== '\r') str += char;
+    } else {
+      doubleQuotedTimesInStr += 1;
+    }
+  }
+  if (cIndex > 0) {
+    addStr();
+  }
+  if (arrays.length <= 0) arrays.push([text]);
+  return arrays;
+}
+
+function getClipboardText(item: ClipboardItem, type: string, cb = (tet: string) => {}) {
+  if (item.types.includes(type)) {
+    item.getType(type).then((blob) => {
+      blob.text().then(cb);
+    });
+    return true;
+  }
+  return false;
 }

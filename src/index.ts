@@ -306,7 +306,7 @@ export default class Table {
     return this;
   }
 
-  addStyle(value: Partial<Style>) {
+  addStyle(value: Partial<Style>): number {
     return addStyle(this._data, value);
   }
 
@@ -402,6 +402,7 @@ export default class Table {
    */
   fill(html: string): Table;
   fill(html: string, to: string): Table;
+  fill(arrays: DataCellValue[][]): Table;
   fill(arrays: DataCellValue[][], to: string): Table;
   fill(data: any, to?: string): Table {
     let [startRow, startCol] = [0, 0];

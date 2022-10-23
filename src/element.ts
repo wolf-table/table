@@ -107,17 +107,18 @@ export default class HElement {
   css(props: CSSAttrs): HElement;
   css(key: string, value: string): HElement;
   css(key: any, value?: string): any {
+    const { style } = this._;
     if (value) {
-      this._.style.setProperty(key, value);
+      style.setProperty(key, value);
       return this;
     }
     if (typeof key === 'string') {
-      return this._.style.getPropertyValue(key);
+      return style.getPropertyValue(key);
     }
     Object.keys(key).forEach((k) => {
       let v: any = key[k];
       if (typeof v === 'number') v = `${v}px`;
-      this._.style.setProperty(k, v);
+      style.setProperty(k, v);
     });
     return this;
   }

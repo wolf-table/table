@@ -1,4 +1,13 @@
-import { Align, Style, VerticalAlign, xy2expr } from 'table-renderer';
+import {
+  Align,
+  BorderLineStyle,
+  BorderType,
+  Cell,
+  Style,
+  VerticalAlign,
+  xy2expr,
+  Range,
+} from 'table-renderer';
 import Table from '.';
 
 /**
@@ -20,86 +29,95 @@ export function fromHtml(t: Table, html: string, [toRow, toCol]: [number, number
     const dstyle = _data.style;
     const template = document.createElement('template');
     template.innerHTML = html;
-    const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_ELEMENT);
-    let [rowIndex, colIndex] = [-1, -1];
-    // const rows = [];
-    // const cols = [];
-    while (walker.nextNode()) {
-      const el = walker.currentNode as HTMLElement;
-      const { nodeName } = el;
-      if (nodeName === 'TR') {
-        // get the row's height
-        rowIndex += 1;
-        colIndex = -1;
-        // for wps google-sheet
-        // elementAttrValue(el, 'height', (v) => (rows[rowIndex] = parseInt(v)));
-        // elementStyleAttrValue(el, 'height', (v) => (rows[rowIndex] = parseInt(v)));
-      } else if (nodeName === 'TD') {
-        colIndex += 1;
-        // for office-excel
-        // elementStyleAttrValue(el, 'height', (v) => (rows[rowIndex] = parseInt(v)));
-        // elementStyleAttrValue(el, 'width', (v) => (cols[colIndex] = parseInt(v)));
 
-        const ref = xy2expr(colIndex + toCol, rowIndex + toRow);
+    const skips: Range[] = [];
+    const trs = template.content.querySelectorAll('tr');
+    trs.forEach((tr, rowIndex) => {
+      const tds = tr.querySelectorAll('td');
+      for (let colIndex = 0; colIndex < tds.length; colIndex += 1) {
+        const td = tds[colIndex];
+        let [r, c] = [rowIndex + toRow, colIndex + toCol];
+        const ref = xy2expr(c, r);
+
+        if (skips.length > 0) {
+          // const findIt = skips.find((it) => it.contains(r, c));
+          skips.forEach((it) => {
+            if (it.containsRow(r) && it.startCol <= c) {
+              c += it.cols;
+              if (it.startRow !== r) c += 1;
+            }
+          });
+        }
 
         // merge cell
-        elementAttrValue(el, 'rowspan', (v) => {});
-        elementAttrValue(el, 'colspan', (v) => {});
+        let [rowspan, colspan] = [1, 1];
+        elementAttrValue(td, 'rowspan', (v) => (rowspan = parseInt(v)));
+        elementAttrValue(td, 'colspan', (v) => (colspan = parseInt(v)));
+        if (rowspan > 1 || colspan > 1) {
+          const range = Range.create(r, c, r + rowspan - 1, c + colspan - 1);
+          t.merge(range.toString());
+          skips.push(range);
+        }
 
         // style
         const nstyle: Partial<Style> = {};
-        elementStyleAttrValue(el, 'backgroundColor', dstyle.bgcolor, (v) => (nstyle.bgcolor = v));
-        elementStyleAttrValue(el, 'color', dstyle.color, (v) => (nstyle.color = v));
-        elementStyleAttrValue(el, 'textAlign', dstyle.align, (v) => (nstyle.align = v as Align));
-        elementStyleAttrValue(
-          el,
-          'verticalAlign',
+        elementStylePropValue(td, 'background-color', dstyle.bgcolor, (v) => (nstyle.bgcolor = v));
+        elementStylePropValue(td, 'color', dstyle.color, (v) => (nstyle.color = v));
+        elementStylePropValue(td, 'text-align', dstyle.align, (v) => (nstyle.align = v as Align));
+        elementStylePropValue(
+          td,
+          'vertical-align',
           dstyle.valign,
           (v) => (nstyle.valign = v as VerticalAlign)
         );
-        elementStyleAttrValue(el, 'whiteSpace', dstyle.textwrap, (v) => (nstyle.textwrap = v === 'nowrap'));
-        elementStyleAttrValue(
-          el,
-          'textDecoration',
-          dstyle.underline,
-          (v) => (nstyle.underline = v === 'underline')
-        );
-        elementStyleAttrValue(
-          el,
-          'textDecoration',
-          dstyle.strikethrough,
-          (v) => (nstyle.strikethrough = v === 'line-through')
-        );
-        elementStyleAttrValue(el, 'fontWeight', dstyle.bold, (v) => (nstyle.bold = v === 'bold'));
-        elementStyleAttrValue(el, 'fontStyle', dstyle.italic, (v) => (nstyle.italic = v === 'italic'));
-        elementStyleAttrValue(el, 'fontFamily', dstyle.fontFamily, (v) => (nstyle.fontFamily = v));
-        elementStyleAttrValue(el, 'fontSize', dstyle.fontSize, (v) => (nstyle.fontSize = parseInt(v)));
+        elementStyleBooleanValue(td, 'white-space', 'nowrap', (v) => (nstyle.textwrap = true));
+        elementStyleBooleanValue(td, 'text-decoration', 'underline', (v) => (nstyle.underline = true));
+        elementStyleBooleanValue(td, 'text-decoration', 'line-through', (v) => (nstyle.strikethrough = true));
+        elementStyleBooleanValue(td, 'font-weight', 'bold', (v) => (nstyle.bold = true));
+        elementStyleBooleanValue(td, 'font-style', 'italic', (v) => (nstyle.italic = true));
+        elementStylePropValue(td, 'font-family', dstyle.fontFamily, (v) => (nstyle.fontFamily = v));
+        elementStylePropValue(td, 'font-size', dstyle.fontSize, (v) => (nstyle.fontSize = parseInt(v)));
 
         // border
         // const border: Border = [];
-        const cssBorder = (v: string) => {
-          const [w, s, c] = v.split(' ');
-          let lineType = 'thin';
-          if (parseInt(w) === 2) {
-            lineType = 'm';
+        const cssBorder = (v: string): [BorderLineStyle, string] => {
+          const [w, s, c] = v.split(' ').map((it) => it.trim());
+          let borderStyle: BorderLineStyle = 'thin';
+          if (s === 'solid') {
+            if (parseInt(w) === 2) {
+              borderStyle = 'medium';
+            } else if (parseInt(w) === 3) {
+              borderStyle = 'thick';
+            }
+          } else {
+            borderStyle = s as BorderLineStyle;
           }
+          return [borderStyle, c];
         };
-        // elementStyleAttrValue(el, 'borderTop', 'none', (v) => t.addBorder(ref, 'top'));
+        ['top', 'right', 'bottom', 'left'].forEach((it) => {
+          elementStylePropValue(td, `border-${it}`, 'none', (v) =>
+            t.addBorder(ref, it as BorderType, ...cssBorder(v))
+          );
+        });
 
         // the cell value
-        const text = el.textContent;
-        if (text !== null && !/^\s*$/.test(text)) {
+        const text = td.innerHTML
+          .replace(/<br(\/){0,1}>/gi, '\n')
+          .replace(/(<([^>]+)>|)/gi, '')
+          .replace('&nbsp;', ' ');
+        // console.log('text: ', td.innerHTML);
+        const cell: Cell = {};
+        if (Object.keys(nstyle).length > 0) {
+          cell.style = t.addStyle(nstyle);
         }
-
-        console.log('text:', el.textContent);
-      } else if (nodeName === 'COL') {
-        // get the col's width
-        // for wps google-sheet
-        // elementAttrValue(el, 'width', (v) => (cols[colIndex] = parseInt(v)));
-        // elementStyleAttrValue(el, 'width', (v) => (cols[colIndex] = parseInt(v)));
+        if (text !== null && !/^\s*$/.test(text)) {
+          cell.value = text;
+        }
+        if (Object.keys(cell).length > 0) {
+          t.cell(r, c, cell);
+        }
       }
-      console.log('currentNode:', el, el.nodeName);
-    }
+    });
   }
 }
 
@@ -110,12 +128,22 @@ function elementAttrValue(el: HTMLElement, attrName: string, cb: (v: string) => 
   }
 }
 
-function elementStyleAttrValue(
+function elementStylePropValue(
   el: HTMLElement,
-  attrName: string,
+  propName: string,
   defaultValue: any,
   cb: (v: string) => void
 ) {
-  const value = el.style.getPropertyValue(attrName);
-  if (value && value !== '' && value !== defaultValue) cb(value);
+  const value = el.style.getPropertyValue(propName);
+  if (value !== null && value !== '' && value !== defaultValue) cb(value);
+}
+
+function elementStyleBooleanValue(
+  el: HTMLElement,
+  propName: string,
+  targetValue: any,
+  cb: (v: string) => void
+) {
+  const value = el.style.getPropertyValue(propName);
+  if (value === targetValue) cb(value);
 }
