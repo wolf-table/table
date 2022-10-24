@@ -1,8 +1,8 @@
 import { Formatter } from 'table-renderer';
-import { DataIndexCell, DataCell, TableData, FormulaParser, DataCellValue } from '.';
+import { IndexDataCell, DataCell, TableData, FormulaParser, DataCellValue } from '.';
 
 export default class Cells {
-  _: DataIndexCell[] = [];
+  _: IndexDataCell[] = [];
   _indexes = new Map();
   _formulas: number[] = [];
   _formulaParser: FormulaParser = (v) => v;
@@ -27,29 +27,61 @@ export default class Cells {
     }
   }
 
-  get(row: number, col: number): DataCell | null {
+  get(row: number, col: number): IndexDataCell | null {
     const { _indexes } = this;
     if (_indexes.has(row)) {
       const index = _indexes.get(row).get(col);
       if (index !== undefined) {
-        return this._[index][2];
+        return this._[index];
       }
       return null;
     }
     return null;
   }
 
+  remove(row: number, col: number) {
+    const { _indexes } = this;
+    if (_indexes.has(row)) {
+      const rowIndexes = _indexes.get(row);
+      const index = rowIndexes.get(col);
+      if (index !== undefined) {
+        this._.splice(index, 1);
+        rowIndexes.delete(col);
+      }
+    }
+    return this;
+  }
+
   set(row: number, col: number, cell: DataCell) {
-    const old = this.get(row, col);
-    if (old === null || old === undefined) {
-      const index = this._.push([row, col, cell]) - 1;
-      this.updateIndex(row, col, index);
-      this.addFormula(cell, index);
+    let oldData = this.get(row, col);
+    if (oldData === null) {
+      if (cell !== null && cell !== undefined) {
+        const index = this._.push([row, col, cell]) - 1;
+        this.updateIndex(row, col, index);
+        this.addFormula(cell, index);
+      }
     } else {
-      const updateValue = cell instanceof Object && old instanceof Object && cell.value !== old.value;
-      Object.assign(old, cell);
-      if (updateValue) {
+      const old = oldData[2];
+      const ovalStr = cellValueString(old);
+      const nvalStr = cellValueString(cell);
+      if (nvalStr === '') {
+        // delete
+        if (old instanceof Object && Object.keys(old).length > 1) {
+          delete old.value;
+        } else {
+          this.remove(row, col);
+        }
         this.resetFormulas();
+      } else {
+        // update
+        if (old instanceof Object) {
+          Object.assign(old, cell instanceof Object ? cell : { value: cell });
+        } else {
+          oldData[2] = cell;
+        }
+        if (nvalStr !== ovalStr) {
+          this.resetFormulas();
+        }
       }
     }
   }

@@ -338,7 +338,8 @@ export default class Table {
       _cells.set(row, col, value);
       return this;
     }
-    return _cells.get(row, col);
+    const v = _cells.get(row, col);
+    return v != null ? v[2] : v;
   }
 
   cellValue(row: number, col: number) {
