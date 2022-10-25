@@ -1,8 +1,8 @@
 import { TableData } from '.';
-import { CellStyle } from 'table-renderer';
+import { Style } from 'table-renderer';
 import { equals } from '../helper';
 
-export function addStyle(t: TableData, value: Partial<CellStyle>): number {
+export function addStyle(t: TableData, value: Partial<Style>): number {
   if (!t.styles) t.styles = [];
   if (value) {
     for (let i = 0; i < t.styles.length; i += 1) {
@@ -15,8 +15,14 @@ export function addStyle(t: TableData, value: Partial<CellStyle>): number {
   return t.styles.push(value) - 1;
 }
 
-export function clearStyles(t: TableData) {
-  if (t.styles) {
-    delete t.styles;
+export function getStyle(t: TableData, index: number, withDefault: boolean = true): Partial<Style> {
+  const style = t.styles[index];
+  if (withDefault) {
+    return Object.assign({}, t.style, t.styles[index] || {});
   }
+  return style;
+}
+
+export function clearStyles(t: TableData) {
+  t.styles.length = 0;
 }

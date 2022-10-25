@@ -41,12 +41,15 @@ import {
   DataRow,
   DataCol,
   DataCellValue,
+  cellValueString,
 } from './data';
 import resizer from './index.resizer';
 import scrollbar from './index.scrollbar';
 import editor from './index.editor';
+import selector from './index.selector';
 import { initEvents } from './index.event';
 import { fromHtml, toHtml } from './index.html';
+import { getStyle } from './data/style';
 
 export type TableRendererOptions = {
   style?: Partial<Style>;
@@ -296,7 +299,7 @@ export default class Table {
     return rowsHeight(this._data, min, max);
   }
 
-  formulaParser(v: FormulaParser): Table {
+  formulaParser(v: FormulaParser) {
     this._cells.formulaParser(v);
     return this;
   }
@@ -304,6 +307,10 @@ export default class Table {
   formatter(v: Formatter) {
     this._cells.formatter(v);
     return this;
+  }
+
+  style(index: number, withDefault = true) {
+    return getStyle(this._data, index, withDefault);
   }
 
   addStyle(value: Partial<Style>): number {
@@ -346,13 +353,17 @@ export default class Table {
     return cellValue(this.cell(row, col));
   }
 
+  cellValueString(row: number, col: number) {
+    return cellValueString(this.cell(row, col));
+  }
+
   render() {
+    const { _data, _renderer, _overlayer } = this;
     for (let prop in this._rendererOptions) {
       const propValue = (this._rendererOptions as any)[prop];
-      if (propValue) (this._renderer as any)[prop](propValue);
+      if (propValue) (_renderer as any)[prop](propValue);
     }
-    const { _data } = this;
-    this._renderer
+    _renderer
       .scrollRows(_data.scroll[0])
       .scrollCols(_data.scroll[1])
       .merges(_data.merges)
@@ -370,7 +381,6 @@ export default class Table {
       .render();
 
     // viewport
-    const { _renderer, _overlayer } = this;
     const { viewport } = _renderer;
     if (viewport) {
       viewport.areas.forEach((rect, index) => {
@@ -406,23 +416,30 @@ export default class Table {
   fill(arrays: DataCellValue[][]): Table;
   fill(arrays: DataCellValue[][], to: string): Table;
   fill(data: any, to?: string): Table {
+    const { _selector } = this;
     let [startRow, startCol] = [0, 0];
     if (to) {
       [startCol, startRow] = expr2xy(to);
     } else {
-      const { _selector } = this;
       if (!_selector) return this;
       [startRow, startCol] = _selector.focus;
     }
+    let [endRow, endCol] = [0, 0];
     if (Array.isArray(data)) {
       for (let i = 0; i < data.length; i += 1) {
         const row = data[i];
+        endCol = startCol + row.length - 1;
         for (let j = 0; j < row.length; j += 1) {
           this.cell(startRow + i, startCol + j, row[j]);
         }
       }
+      endRow = startRow + data.length - 1;
     } else if (typeof data === 'string') {
-      fromHtml(this, data, [startRow, startCol]);
+      [endRow, endCol] = fromHtml(this, data, [startRow, startCol]);
+    }
+    if (endRow > 0 || endCol > 0) {
+      _selector?.unionRange(endRow, endCol);
+      selector.reset(this);
     }
     return this;
   }
@@ -430,7 +447,7 @@ export default class Table {
   /**
    * @param from A1:H12
    */
-  toHtml(from: string) {
+  toHtml(from: string): string {
     return toHtml(this, from);
   }
 

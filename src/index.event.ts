@@ -1,4 +1,5 @@
 import Table from '.';
+import { Range } from 'table-renderer';
 import { DataCellValue } from './data';
 import selector from './index.selector';
 import editor from './index.editor';
@@ -150,9 +151,21 @@ function keydownHandler(t: Table, evt: any) {
     evt.preventDefault();
   } else if (code === 'KeyC' && (ctrlKey || metaKey)) {
     // copy
-    console.log('copy');
+    const { _selector } = t;
+    if (_selector && _selector.ranges.length > 0) {
+      const items: any = {};
+      ['text/plain', 'text/html'].forEach((type) => {
+        const from = _selector.ranges[0].toString();
+        const text = type === 'text/html' ? t.toHtml(from) : toClipboardTextFrom(t, from);
+        // console.log(`copy: [${type}] => ${text}`);
+        items[type] = new Blob([text], { type });
+      });
+      navigator.clipboard.write([new ClipboardItem(items)]).then(
+        () => console.log('clipboard has writed success'),
+        (e) => console.log('clipboard has wirted failure: ', e)
+      );
+    }
   } else if (code === 'KeyV' && (ctrlKey || metaKey)) {
-    // console.log('Pasted text: ', navigator.clipboard);
     navigator.clipboard.read().then((clipboardItems) => {
       if (clipboardItems.length > 0) {
         const item = clipboardItems[0];
@@ -172,6 +185,20 @@ function keydownHandler(t: Table, evt: any) {
     selector.move(t, direction);
     evt.preventDefault();
   }
+}
+
+function toClipboardTextFrom(t: Table, from: string) {
+  const fromRange = Range.with(from);
+  let text = '';
+  fromRange.eachRow((r) => {
+    fromRange.eachCol((c) => {
+      let vstr = t.cellValueString(r, c);
+      if (vstr.includes('\n')) vstr = `"${vstr}"`;
+      text += `${vstr}\t`;
+    });
+    text += '\n';
+  });
+  return text;
 }
 
 function toArraysFromClipboardText(text: string) {
@@ -213,10 +240,13 @@ function toArraysFromClipboardText(text: string) {
   return arrays;
 }
 
-function getClipboardText(item: ClipboardItem, type: string, cb = (tet: string) => {}) {
+function getClipboardText(item: ClipboardItem, type: string, cb = (text: string) => {}) {
   if (item.types.includes(type)) {
     item.getType(type).then((blob) => {
-      blob.text().then(cb);
+      blob.text().then((text) => {
+        console.log(`[${type}]: ${text}`);
+        cb(text);
+      });
     });
     return true;
   }
