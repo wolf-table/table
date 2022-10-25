@@ -150,8 +150,6 @@ export function fromHtml(
       for (let colIndex = 0; colIndex < tds.length; colIndex += 1) {
         const td = tds[colIndex];
         let [r, c] = [rowIndex + toStartRow, colIndex + toStartCol];
-        const ref = xy2expr(c, r);
-
         if (skips.length > 0) {
           skips.forEach((it) => {
             if (it.containsRow(r) && it.startCol <= c) {
@@ -160,6 +158,7 @@ export function fromHtml(
             }
           });
         }
+        const ref = xy2expr(c, r);
 
         // merge cell
         let [rowspan, colspan] = [1, 1];
@@ -218,14 +217,14 @@ export function fromHtml(
         elementStylePropValue(td, 'border-color', '', (it) => borderxs.push(it));
         if (borderxs.length >= 3) {
           t.addBorder(ref, 'all', ...css2border(borderxs.join(' ')));
+        } else {
+          elementStylePropValue(td, 'border', 'none', (it) => t.addBorder(ref, 'all', ...css2border(it)));
+          ['top', 'right', 'bottom', 'left'].forEach((it) => {
+            elementStylePropValue(td, `border-${it}`, 'none', (v) =>
+              t.addBorder(ref, it as BorderType, ...css2border(v))
+            );
+          });
         }
-
-        elementStylePropValue(td, 'border', 'none', (it) => t.addBorder(ref, 'all', ...css2border(it)));
-        ['top', 'right', 'bottom', 'left'].forEach((it) => {
-          elementStylePropValue(td, `border-${it}`, 'none', (v) =>
-            t.addBorder(ref, it as BorderType, ...css2border(v))
-          );
-        });
 
         // the cell value
         const text = td.innerHTML
