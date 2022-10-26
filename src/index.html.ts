@@ -143,9 +143,15 @@ export function fromHtml(
     const trs = template.content.querySelectorAll('tr');
     toEnd[0] = toStartRow + trs.length - 1;
 
+    const borderss: Border[][] = [];
+
     trs.forEach((tr, rowIndex) => {
       const tds = tr.querySelectorAll('td');
       if (rowIndex === 0) toEnd[1] = toStartCol + tds.length - 1;
+
+      // is border the same in tr
+      let prevBorder: Border | null = null;
+      const borders: Border[] = [];
 
       for (let colIndex = 0; colIndex < tds.length; colIndex += 1) {
         const td = tds[colIndex];
@@ -212,18 +218,50 @@ export function fromHtml(
         };
 
         let borderxs: string[] = [];
+        let curBorder: Border | null = null;
+        // let border: Border | undefined = undefined;
         elementStylePropValue(td, 'border-width', '', (it) => borderxs.push(it));
         elementStylePropValue(td, 'border-style', '', (it) => borderxs.push(it));
         elementStylePropValue(td, 'border-color', '', (it) => borderxs.push(it));
         if (borderxs.length >= 3) {
-          t.addBorder(ref, 'all', ...css2border(borderxs.join(' ')));
+          curBorder = [ref, 'all', ...css2border(borderxs.join(' '))];
+          // t.addBorder(ref, 'all', ...css2border(borderxs.join(' ')));
         } else {
-          elementStylePropValue(td, 'border', 'none', (it) => t.addBorder(ref, 'all', ...css2border(it)));
-          ['top', 'right', 'bottom', 'left'].forEach((it) => {
-            elementStylePropValue(td, `border-${it}`, 'none', (v) =>
-              t.addBorder(ref, it as BorderType, ...css2border(v))
-            );
-          });
+          if (
+            !elementStylePropValue(
+              td,
+              'border',
+              'none',
+              (it) => (curBorder = [ref, 'all', ...css2border(it)])
+            )
+          ) {
+            ['top', 'right', 'bottom', 'left'].forEach((it) => {
+              elementStylePropValue(
+                td,
+                `border-${it}`,
+                'none',
+                (v) => (curBorder = [ref, it as BorderType, ...css2border(v)])
+              );
+            });
+          }
+        }
+
+        if (prevBorder === null) {
+          if (curBorder !== null) {
+            prevBorder = curBorder;
+          }
+        } else {
+          if (
+            curBorder !== null &&
+            curBorder[1] === prevBorder[1] &&
+            curBorder[2] === prevBorder[2] &&
+            curBorder[3] === prevBorder[3]
+          ) {
+            prevBorder[0] = `${prevBorder[0].split(':')[0]}:${ref}`;
+          } else {
+            borders.push(prevBorder);
+            prevBorder = curBorder;
+          }
         }
 
         // the cell value
@@ -243,7 +281,40 @@ export function fromHtml(
           t.cell(r, c, cell);
         }
       }
+      if (prevBorder != null) {
+        borders.push(prevBorder);
+      }
+
+      // auto merge borders in trs
+      if (borderss.length > 0) {
+        const prevBorders = borderss[borderss.length - 1];
+        // console.log('prevBorders.length:', prevBorders.length, borders.length);
+        if (
+          prevBorders.length === 1 &&
+          borders.length === 1 &&
+          prevBorders[0][1] === 'all' &&
+          prevBorders[0][1] === borders[0][1] &&
+          prevBorders[0][2] === borders[0][2] &&
+          prevBorders[0][3] === borders[0][3]
+        ) {
+          const range = Range.with(prevBorders[0][0]);
+          range.endRow += 1;
+          // console.log('range:', range.toString());
+          prevBorders[0][0] = range.toString();
+        } else {
+          borderss.push(borders);
+        }
+      } else {
+        borderss.push(borders);
+      }
     });
+
+    // add border ...
+    if (borderss.length > 0) {
+      for (let borders of borderss) {
+        borders.forEach((it) => t.addBorder(...it));
+      }
+    }
   }
   return toEnd;
 }
@@ -260,9 +331,11 @@ function elementStylePropValue(
   propName: string,
   defaultValue: any,
   cb: (v: string) => void
-) {
+): boolean {
   const value = el.style.getPropertyValue(propName);
-  if (value !== null && value !== '' && value !== defaultValue) cb(value);
+  const flag = value !== null && value !== '' && value !== defaultValue;
+  if (flag) cb(value);
+  return flag;
 }
 
 function elementStyleBooleanValue(

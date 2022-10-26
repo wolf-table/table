@@ -152,12 +152,11 @@ function keydownHandler(t: Table, evt: any) {
   } else if (code === 'KeyC' && (ctrlKey || metaKey)) {
     // copy
     const { _selector } = t;
-    if (_selector && _selector.ranges.length > 0) {
+    if (t._copyable && _selector && _selector.ranges.length > 0) {
       const items: any = {};
       ['text/plain', 'text/html'].forEach((type) => {
         const from = _selector.ranges[0].toString();
         const text = type === 'text/html' ? t.toHtml(from) : toClipboardTextFrom(t, from);
-        // console.log(`copy: [${type}] => ${text}`);
         items[type] = new Blob([text], { type });
       });
       navigator.clipboard.write([new ClipboardItem(items)]).then(
@@ -166,20 +165,25 @@ function keydownHandler(t: Table, evt: any) {
       );
     }
   } else if (code === 'KeyV' && (ctrlKey || metaKey)) {
-    navigator.clipboard.read().then((clipboardItems) => {
-      if (clipboardItems.length > 0) {
-        const item = clipboardItems[0];
-        let onlyCopyText = shiftKey;
-        if (!onlyCopyText) {
-          onlyCopyText = !getClipboardText(item, 'text/html', (text) => t.fill(text).render());
+    if (t._editable) {
+      navigator.clipboard.read().then((clipboardItems) => {
+        if (clipboardItems.length > 0) {
+          const item = clipboardItems[0];
+          let onlyCopyText = shiftKey;
+          if (!onlyCopyText) {
+            onlyCopyText = !getClipboardText(item, 'text/html', (text) => {
+              t.fill(text).render();
+              // console.log('t._data:', t._data);
+            });
+          }
+          if (onlyCopyText) {
+            getClipboardText(item, 'text/plain', (text) => {
+              t.fill(toArraysFromClipboardText(text)).render();
+            });
+          }
         }
-        if (onlyCopyText) {
-          getClipboardText(item, 'text/plain', (text) => {
-            t.fill(toArraysFromClipboardText(text)).render();
-          });
-        }
-      }
-    });
+      });
+    }
   }
   if (direction) {
     selector.move(t, direction);
@@ -244,7 +248,7 @@ function getClipboardText(item: ClipboardItem, type: string, cb = (text: string)
   if (item.types.includes(type)) {
     item.getType(type).then((blob) => {
       blob.text().then((text) => {
-        console.log(`[${type}]: ${text}`);
+        // console.log(`[${type}]: ${text}`);
         cb(text);
       });
     });

@@ -75,6 +75,7 @@ export type TableOptions = {
   resizable?: boolean;
   selectable?: boolean;
   editable?: boolean;
+  copyable?: boolean;
   data?: TableDataOptions;
   renderer?: TableRendererOptions;
 };
@@ -82,6 +83,10 @@ export type TableOptions = {
 export default class Table {
   // renderer options
   _rendererOptions: TableRendererOptions = {};
+
+  _copyable = false;
+
+  _editable = false;
 
   _minRowHeight: number = 25;
 
@@ -176,8 +181,11 @@ export default class Table {
     }
 
     if (options?.editable) {
+      this._editable = true;
       editor.init(this);
     }
+
+    this._copyable = options?.copyable || false;
 
     initEvents(this);
   }
