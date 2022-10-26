@@ -248,7 +248,7 @@ function getClipboardText(item: ClipboardItem, type: string, cb = (text: string)
   if (item.types.includes(type)) {
     item.getType(type).then((blob) => {
       blob.text().then((text) => {
-        // console.log(`[${type}]: ${text}`);
+        console.log(`[${type}]: ${text}`);
         cb(text);
       });
     });

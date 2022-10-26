@@ -18,7 +18,8 @@ import { pt2px } from './helper';
  * @param from the range reference, like A1:H22
  */
 export function toHtml(t: Table, from: string) {
-  let htmlStr = '<table style="border-spacing: 0; border-collapse: collapse;">';
+  let htmlStr =
+    '<table xmlns="http://www.w3.org/1999/xhtml" style="border-spacing: 0; border-collapse: collapse;">';
   const fromRange = Range.with(from);
 
   // merges
@@ -188,7 +189,7 @@ export function fromHtml(
           dstyle.valign,
           (v) => (nstyle.valign = v as VerticalAlign)
         );
-        elementStyleBooleanValue(td, 'white-space', 'nowrap', (v) => (nstyle.textwrap = true));
+        elementStyleBooleanValue(td, 'white-space', 'normal', (v) => (nstyle.textwrap = true));
         elementStyleBooleanValue(td, 'text-decoration', 'underline', (v) => (nstyle.underline = true));
         elementStyleBooleanValue(td, 'text-decoration', 'line-through', (v) => (nstyle.strikethrough = true));
         elementStyleBooleanValue(td, 'font-style', 'italic', (v) => (nstyle.italic = true));

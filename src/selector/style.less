@@ -6,6 +6,7 @@
   pointer-events: none;
   background: transparent;
   border: 2px solid @primary-color;
+  z-index: 2;
 
   .corner {
     background: @primary-color;
@@ -22,5 +23,9 @@
   position: absolute;
   pointer-events: none;
   background: #4b89ff14;
-  // border: 2px solid #4b89ff;
+}
+.@{style-prefix}-selector-focus {
+  background: #79a7fd14;
+  position: absolute;
+  z-index: 1;
 }

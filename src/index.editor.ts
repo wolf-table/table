@@ -8,11 +8,11 @@ function init(t: Table) {
   const { _editor, _selector } = t;
   _editor.inputChange((text) => {});
   _editor.moveChange((direction, value) => {
+    selector.setCellValue(t, value);
     if (direction !== 'none' && _selector) {
       selector.move(t, direction);
       t._canvas.focus();
     }
-    selector.setCellValue(t, value);
   });
 }
 
@@ -20,9 +20,9 @@ function move(t: Table) {
   const { _editor, _selector } = t;
   if (_editor && _selector) {
     if (_editor.visible && _selector._placement === 'body') {
-      const { focusRect, focusTarget } = _selector;
-      if (focusRect && focusTarget) {
-        _editor.appendTo(focusTarget).show(focusRect);
+      const { _focusRect, _focusTarget } = _selector;
+      if (_focusRect && _focusTarget) {
+        _editor.appendTo(_focusTarget).show(_focusRect);
       } else {
         _editor.show({ x: -100, y: -100, width: 0, height: 0 });
       }
@@ -34,10 +34,10 @@ function reset(t: Table) {
   const { _selector, _editor } = t;
   if (_selector && _editor) {
     if (_selector._placement === 'body') {
-      const { focusRange, focusRect, focusTarget } = _selector;
-      if (focusRange && focusRect && focusTarget) {
-        _editor.appendTo(focusTarget).show(focusRect);
-        const cell = t.cell(focusRange.startRow, focusRange.startCol);
+      const { _focusRange, _focusRect, _focusTarget } = _selector;
+      if (_focusRange && _focusRect && _focusTarget) {
+        _editor.appendTo(_focusTarget).show(_focusRect);
+        const cell = t.cell(_focusRange.startRow, _focusRange.startCol);
         if (cell) {
           _editor.value(cellValueString(cell));
         }

@@ -5,15 +5,16 @@ import HElement, { h } from '../element';
 
 type Placement = 'all' | 'row-header' | 'col-header' | 'body';
 export default class Selector {
-  oldRanges: Range[] = [];
-  ranges: Range[] = [];
-  rowHeaderRanges: Range[] = [];
-  colHeaderRanges: Range[] = [];
+  _ranges: Range[] = [];
+  _rowHeaderRanges: Range[] = [];
+  _colHeaderRanges: Range[] = [];
 
-  focus: [number, number] = [0, 0];
-  focusRange: Range | null = null;
-  focusRect: Rect | null = null;
-  focusTarget: HElement | null = null;
+  _focus: [number, number] = [0, 0];
+  _focusRange: Range | null = null;
+  _focusRect: Rect | null = null;
+  _focusArea: HElement = h('div', `${stylePrefix}-selector-focus`);
+  _focusTarget: HElement | null = null;
+
   _placement: Placement = 'body';
   _data: TableData;
 
@@ -40,11 +41,11 @@ export default class Selector {
   }
 
   addRange(r: number, c: number, clear: boolean = true) {
-    this.focus = [r, c];
+    this._focus = [r, c];
     const range = rangeUnoinMerges(this._data, Range.create(r, c));
     if (clear) this.clearRanges();
-    this.ranges.push(range);
-    this.focusRange = range;
+    this._ranges.push(range);
+    this._focusRange = range;
 
     updateHeaderRanges(this);
     return this;
@@ -52,25 +53,24 @@ export default class Selector {
 
   unionRange(r: number, c: number) {
     const range = Range.create(r, c);
-    const { ranges, focusRange } = this;
-    if (focusRange) {
-      const newRange = focusRange.union(range);
-      ranges.splice(-1, 1, rangeUnoinMerges(this._data, newRange));
+    const { _ranges, _focusRange } = this;
+    if (_focusRange) {
+      const newRange = _focusRange.union(range);
+      _ranges.splice(-1, 1, rangeUnoinMerges(this._data, newRange));
       updateHeaderRanges(this);
     }
     return this;
   }
 
   clearRanges() {
-    this.oldRanges = this.ranges;
-    this.ranges = [];
+    this._ranges.length = 0;
     return this;
   }
 
   move(type: 'up' | 'down' | 'left' | 'right', step: number) {
-    const { focusRange } = this;
-    if (focusRange && step > 0) {
-      const { startRow, startCol, endRow, endCol } = focusRange;
+    const { _focusRange } = this;
+    if (_focusRange && step > 0) {
+      const { startRow, startCol, endRow, endCol } = _focusRange;
       const { _data } = this;
       const { rows, cols } = _data;
 
@@ -89,7 +89,7 @@ export default class Selector {
         }
       };
 
-      let [r, c] = this.focus;
+      let [r, c] = this._focus;
       if (type === 'up') {
         r = getShowRowIndex(startRow - step, -1);
       } else if (type === 'down') {
@@ -106,8 +106,17 @@ export default class Selector {
   }
 
   setFocusRectAndTarget(rect: Rect, target: HElement) {
-    this.focusRect = rect;
-    this.focusTarget = target;
+    this._focusRect = rect;
+    this._focusArea
+      .css({
+        left: rect.x + borderWidth,
+        top: rect.y + borderWidth,
+        width: rect.width - borderWidth * 2,
+        height: rect.height - borderWidth * 2,
+      })
+      .show();
+    target.append(this._focusArea);
+    this._focusTarget = target;
   }
 
   addAreaRect(rangeIndex: number, rect: Rect) {
@@ -123,7 +132,7 @@ export default class Selector {
         .show()
     );
 
-    const last = rangeIndex === this.ranges.length - 1;
+    const last = rangeIndex === this._ranges.length - 1;
     if (last) {
       this._ = h('div', `${stylePrefix}-selector`)
         .css({
@@ -167,10 +176,14 @@ export default class Selector {
   }
 
   clearTargets() {
-    this.focusTarget = null;
-    if (this._targets && this._targets.length > 0) {
-      this._targets.forEach((it, index) => it.remove(...this._targetChildren[index]));
-      [this._targetChildren, this._targets].forEach((it) => (it.length = 0));
+    const { _targets, _focusTarget } = this;
+    if (_focusTarget && this._focusArea) {
+      _focusTarget.remove(this._focusArea);
+      this._focusTarget = null;
+    }
+    if (_targets && _targets.length > 0) {
+      _targets.forEach((it, index) => it.remove(...this._targetChildren[index]));
+      [this._targetChildren, _targets].forEach((it) => (it.length = 0));
       this.clearAreas();
     }
     return this;
@@ -207,8 +220,8 @@ function mergedRanges(
 function updateHeaderRanges(s: Selector) {
   const rowHeaderRanges = [];
   const colHeaderRanges = [];
-  for (let i = 0; i < s.ranges.length; i += 1) {
-    const { startRow, startCol, endRow, endCol } = s.ranges[i];
+  for (let i = 0; i < s._ranges.length; i += 1) {
+    const { startRow, startCol, endRow, endCol } = s._ranges[i];
     if (startRow > 0 || endRow > 0) {
       rowHeaderRanges.push(Range.create(startRow, 0, endRow, 0));
     }
@@ -217,12 +230,12 @@ function updateHeaderRanges(s: Selector) {
     }
   }
 
-  s.rowHeaderRanges = mergedRanges(
+  s._rowHeaderRanges = mergedRanges(
     rowHeaderRanges,
     (a, b) => a.startRow - b.startRow,
     (a, b) => a.intersectsRow(b.startRow, b.endRow)
   );
-  s.colHeaderRanges = mergedRanges(
+  s._colHeaderRanges = mergedRanges(
     colHeaderRanges,
     (a, b) => a.startCol - b.startCol,
     (a, b) => a.intersectsCol(b.startCol, b.endCol)

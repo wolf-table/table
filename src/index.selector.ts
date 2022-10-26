@@ -5,8 +5,8 @@ import { expr2xy, Rect, Range, Area } from 'table-renderer';
 function setCellValue(t: Table, value: string) {
   const { _selector } = t;
   if (_selector) {
-    const { oldRanges, ranges } = _selector;
-    (oldRanges.length > 0 ? oldRanges : ranges).forEach((range) => {
+    const { _ranges } = _selector;
+    _ranges.forEach((range) => {
       range.each((r, c) => {
         t.cell(r, c, { value });
       });
@@ -34,16 +34,16 @@ function reset(t: Table) {
       viewport.areas.forEach((area, index) => {
         let intersects = false;
         const target = _overlayer.areas[index];
-        _selector.ranges.forEach((r, i) => {
+        _selector._ranges.forEach((r, i) => {
           if (intersectsFunc(area.range, r)) {
             intersects = true;
             _selector.addAreaRect(i, rectFunc(area, r, index));
           }
         });
-        const { focusRange } = _selector;
-        if (focusRange) {
-          if (intersectsFunc(area.range, focusRange)) {
-            _selector.setFocusRectAndTarget(rectFunc(area, focusRange, index), target);
+        const { _focusRange } = _selector;
+        if (_focusRange) {
+          if (intersectsFunc(area.range, _focusRange)) {
+            _selector.setFocusRectAndTarget(rectFunc(area, _focusRange, index), target);
           }
         }
         if (intersects) _selector.addTarget(target);
@@ -54,7 +54,7 @@ function reset(t: Table) {
       areaIndexes.forEach((index) => {
         const area = viewport.headerAreas[index];
         let intersects = false;
-        (type === 'row' ? _selector.rowHeaderRanges : _selector.colHeaderRanges).forEach((r) => {
+        (type === 'row' ? _selector._rowHeaderRanges : _selector._colHeaderRanges).forEach((r) => {
           if (type === 'row') {
             if (area.range.intersectsRow(r.startRow, r.endRow)) {
               intersects = true;
@@ -126,7 +126,7 @@ function move(t: Table, direction: 'up' | 'down' | 'left' | 'right') {
   const { _selector, _data } = t;
   const { viewport } = t._renderer;
   if (_selector && viewport) {
-    let [fr, fc] = _selector.focus;
+    let [fr, fc] = _selector._focus;
     _selector.move(direction, 1);
     if (_data.freeze && (direction === 'down' || direction === 'right')) {
       const [fc1, fr1] = expr2xy(_data.freeze);
@@ -142,12 +142,12 @@ function move(t: Table, direction: 'up' | 'down' | 'left' | 'right') {
     }
 
     const [, , , area4] = viewport.areas;
-    [fr, fc] = _selector.focus;
-    const { focusRange } = _selector;
+    [fr, fc] = _selector._focus;
+    const { _focusRange } = _selector;
     let [rows, cols] = [1, 1];
-    if (focusRange) {
-      rows += focusRange.rows;
-      cols += focusRange.cols;
+    if (_focusRange) {
+      rows += _focusRange.rows;
+      cols += _focusRange.cols;
     }
     const { startRow, startCol, endRow, endCol } = area4.range;
     if (viewport.inAreas(fr, fc) && endRow !== fr && endCol !== fc) {
