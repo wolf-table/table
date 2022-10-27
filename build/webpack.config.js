@@ -1,11 +1,19 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 
 module.exports = {
   entry: {
     table: './src/index.ts',
   },
-  plugins: [new MiniCssExtractPlugin()],
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: '[name].min.css',
+    }),
+  ],
+  optimization: {
+    minimizer: [`...`, new CssMinimizerPlugin()],
+  },
   module: {
     rules: [
       {
@@ -23,7 +31,7 @@ module.exports = {
     extensions: ['.ts', '.js'],
   },
   output: {
-    filename: '[name].js',
+    filename: '[name].min.js',
     path: path.resolve(__dirname, '../dist'),
     clean: true,
   },
