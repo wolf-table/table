@@ -192,7 +192,7 @@ function keydownHandler(t: Table, evt: any) {
     selector.clearCopy(t);
   }
   if (direction) {
-    selector.move(t, direction);
+    selector.move(t, direction, metaKey || ctrlKey ? undefined : 1);
     evt.preventDefault();
   }
 }

@@ -103,37 +103,50 @@ export default class Selector {
     return this;
   }
 
-  move(type: 'up' | 'down' | 'left' | 'right', step: number) {
+  move(type: 'up' | 'down' | 'left' | 'right', step?: number) {
     const { _focusRange } = this;
-    if (_focusRange && step > 0) {
+    if (_focusRange) {
       const { startRow, startCol, endRow, endCol } = _focusRange;
       const { _data } = this;
       const { rows, cols } = _data;
 
-      const getShowRowIndex = (index: number, offset: number) => {
-        for (;;) {
-          const r = row(_data, index);
-          if (r && r.hide) index += offset;
-          else return index;
-        }
-      };
-      const getShowColIndex = (index: number, offset: number) => {
-        for (;;) {
-          const r = col(_data, index);
-          if (r && r.hide) index += offset;
-          else return index;
-        }
-      };
-
       let [r, c] = this._focus;
-      if (type === 'up') {
-        r = getShowRowIndex(startRow - step, -1);
-      } else if (type === 'down') {
-        r = getShowRowIndex(endRow + step, 1);
-      } else if (type === 'left') {
-        c = getShowColIndex(startCol - step, -1);
-      } else if (type === 'right') {
-        c = getShowColIndex(endCol + step, 1);
+
+      if (step) {
+        const getShowRowIndex = (index: number, offset: number) => {
+          for (;;) {
+            const r = row(_data, index);
+            if (r && r.hide) index += offset;
+            else return index;
+          }
+        };
+        const getShowColIndex = (index: number, offset: number) => {
+          for (;;) {
+            const r = col(_data, index);
+            if (r && r.hide) index += offset;
+            else return index;
+          }
+        };
+
+        if (type === 'up') {
+          r = getShowRowIndex(startRow - step, -1);
+        } else if (type === 'down') {
+          r = getShowRowIndex(endRow + step, 1);
+        } else if (type === 'left') {
+          c = getShowColIndex(startCol - step, -1);
+        } else if (type === 'right') {
+          c = getShowColIndex(endCol + step, 1);
+        }
+      } else {
+        if (type === 'up') {
+          r = 0;
+        } else if (type === 'down') {
+          r = rows.len - 1;
+        } else if (type === 'left') {
+          c = 0;
+        } else if (type === 'right') {
+          c = cols.len - 1;
+        }
       }
       if (r >= 0 && r <= rows.len - 1 && c >= 0 && c <= cols.len - 1) {
         this.addRange(r, c, true);

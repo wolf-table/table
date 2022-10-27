@@ -62,6 +62,16 @@ export default class Scrollbar {
     return this;
   }
 
+  scrollToStart() {
+    this.scroll(0);
+    return this;
+  }
+
+  scrollToEnd() {
+    this.scroll(this._maxValue);
+    return this;
+  }
+
   scroll(): any;
   scroll(value: number): Scrollbar;
   scroll(value?: number): any {
