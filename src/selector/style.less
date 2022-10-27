@@ -27,5 +27,13 @@
 .@{style-prefix}-selector-focus {
   background: #79a7fd14;
   position: absolute;
+  pointer-events: none;
   z-index: 1;
+}
+.@{style-prefix}-selector-copy {
+  display: none;
+  position: absolute;
+  pointer-events: none;
+  border: 2px dashed @primary-color;
+  z-index: 3;
 }

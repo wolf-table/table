@@ -152,10 +152,11 @@ function keydownHandler(t: Table, evt: any) {
   } else if (code === 'KeyC' && (ctrlKey || metaKey)) {
     // copy
     const { _selector } = t;
-    if (t._copyable && _selector && _selector._ranges.length > 0) {
+    if (t._copyable && _selector) {
       const items: any = {};
       const range = _selector._ranges[0];
       if (range) {
+        selector.showCopy(t);
         ['text/plain', 'text/html'].forEach((type) => {
           const from = range.toString();
           const text = type === 'text/html' ? t.toHtml(from) : toClipboardTextFrom(t, from);
@@ -187,6 +188,8 @@ function keydownHandler(t: Table, evt: any) {
         }
       });
     }
+  } else if (code === 'Escape') {
+    selector.clearCopy(t);
   }
   if (direction) {
     selector.move(t, direction);

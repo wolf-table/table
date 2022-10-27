@@ -58,7 +58,7 @@ export function defaultData(): TableData {
       textwrap: false,
       bold: false,
       italic: false,
-      fontFamily: 'Helvetica',
+      fontFamily: 'Roboto',
       fontSize: 10,
       underline: false,
       strikethrough: false,

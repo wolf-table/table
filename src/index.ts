@@ -168,7 +168,7 @@ export default class Table {
     resizeContentRect(this);
 
     if (options?.selectable) {
-      this._selector = new Selector(this._data, options.editable);
+      this._selector = new Selector(this._data, !!options.editable);
     }
 
     // scroll
@@ -211,7 +211,7 @@ export default class Table {
     else {
       const { _selector } = this;
       if (_selector) {
-        return _selector.ranges.every((it) => isMerged(this._data, it.toString()));
+        return _selector._ranges.every((it) => isMerged(this._data, it.toString()));
       }
     }
     return false;
@@ -225,7 +225,7 @@ export default class Table {
     else {
       const { _selector } = this;
       if (_selector) {
-        _selector.ranges.forEach((it) => merge(this._data, it.toString()));
+        _selector._ranges.forEach((it) => merge(this._data, it.toString()));
       }
     }
     return this;
@@ -239,7 +239,7 @@ export default class Table {
     else {
       const { _selector } = this;
       if (_selector) {
-        _selector.ranges.forEach((it) => unmerge(this._data, it.toString()));
+        _selector._ranges.forEach((it) => unmerge(this._data, it.toString()));
       }
     }
     return this;
@@ -430,7 +430,7 @@ export default class Table {
       [startCol, startRow] = expr2xy(to);
     } else {
       if (!_selector) return this;
-      [startRow, startCol] = _selector.focus;
+      [startRow, startCol] = _selector._focus;
     }
     let [endRow, endCol] = [0, 0];
     if (Array.isArray(data)) {

@@ -8,24 +8,35 @@ class SelectArea {
   _rect: Rect | null = null;
   _target: HElement | null = null;
 
-  constructor(el: HElement) {
-    this._ = el;
+  constructor(classNameSuffix: string, show = false) {
+    this._ = h('div', `${stylePrefix}-${classNameSuffix}`);
+    if (show) this.show();
   }
 
-  rect(value: Rect, padding: number = borderWidth) {
+  append(child: HElement) {
+    this._.append(child);
+    return this;
+  }
+
+  rect(value: Rect) {
     this._rect = value;
     this._.css({
-      left: value.x + padding,
-      top: value.y + padding,
-      width: value.width - padding * 2,
-      height: value.height - padding * 2,
-    }).show();
+      left: value.x,
+      top: value.y,
+      width: value.width,
+      height: value.height,
+    });
     return this;
   }
 
   target(value: HElement) {
     value.append(this._);
     this._target = value;
+    return this;
+  }
+
+  show() {
+    this._.show();
     return this;
   }
 
@@ -54,7 +65,7 @@ export default class Selector {
   _focusRange: Range | null = null;
   _focusAreas: SelectArea[] = [];
 
-  _copyRange: Range | null = null;
+  _copyRange: Range | null | undefined = null;
   _copyAreas: SelectArea[] = [];
 
   constructor(data: TableData, editable: boolean) {
@@ -132,53 +143,66 @@ export default class Selector {
 
   addArea(index: number, rect: Rect, target: HElement) {
     const { x, y, width, height } = rect;
-    this._areas.push(
-      new SelectArea(h('div', `${stylePrefix}-selector-area`)).rect(rect, borderWidth).target(target)
-    );
+    this._areas.push(new SelectArea(`selector-area`, true).rect(rect).target(target));
 
     if (index === this._ranges.length - 1) {
-      const outline = h('div', `${stylePrefix}-selector`);
+      const outline = new SelectArea(`selector`, true)
+        .rect({
+          x: x - borderWidth / 2,
+          y: y - borderWidth / 2,
+          width: width - borderWidth,
+          height: height - borderWidth,
+        })
+        .target(target);
       if (this._placement === 'body') outline.append(h('div', 'corner'));
-      this._areas.push(
-        new SelectArea(outline)
-          .rect(
-            {
-              x: x - borderWidth / 2,
-              y: y - borderWidth / 2,
-              width: width - borderWidth,
-              height: height - borderWidth,
-            },
-            0
-          )
-          .target(target)
-      );
+      this._areas.push(outline);
     }
     return this;
   }
 
   addRowHeaderArea(rect: Rect, target: HElement) {
-    this._areas.push(
-      new SelectArea(h('div', `${stylePrefix}-selector-area row-header`)).rect(rect, 0).target(target)
-    );
+    this._areas.push(new SelectArea(`selector-area row-header`, true).rect(rect).target(target));
     return this;
   }
 
   addColHeaderArea(rect: Rect, target: HElement) {
-    this._areas.push(
-      new SelectArea(h('div', `${stylePrefix}-selector-area col-header`)).rect(rect, 0).target(target)
-    );
+    this._areas.push(new SelectArea(`selector-area col-header`, true).rect(rect).target(target));
     return this;
   }
 
   addFocusArea(rect: Rect, target: HElement) {
-    this._focusAreas.push(
-      new SelectArea(h('div', `${stylePrefix}-selector-focus`)).rect(rect).target(target)
+    this._focusAreas.push(new SelectArea(`selector-focus`, true).rect(rect).target(target));
+    return this;
+  }
+
+  addCopyArea({ x, y, width, height }: Rect, target: HElement) {
+    this._copyAreas.push(
+      new SelectArea(`selector-copy`, true)
+        .rect({
+          x: x - borderWidth / 2,
+          y: y - borderWidth / 2,
+          width: width - borderWidth,
+          height: height - borderWidth,
+        })
+        .target(target)
     );
     return this;
   }
 
+  showCopy() {
+    this._copyRange = this._ranges.at(-1);
+  }
+
+  clearCopy() {
+    this._copyRange = null;
+    this._copyAreas.forEach((it) => {
+      it.clear();
+    });
+    this._copyAreas.length = 0;
+  }
+
   clear() {
-    [this._areas, this._focusAreas].forEach((it) => {
+    [this._areas, this._focusAreas, this._copyAreas].forEach((it) => {
       it.forEach((it1) => it1.clear());
       it.length = 0;
     });

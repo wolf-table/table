@@ -287,8 +287,8 @@ export function fromHtml(
       }
 
       // auto merge borders in trs
-      if (borderss.length > 0) {
-        const prevBorders = borderss[borderss.length - 1];
+      const prevBorders = borderss.at(-1);
+      if (prevBorders && prevBorders.length > 0) {
         // console.log('prevBorders.length:', prevBorders.length, borders.length);
         if (
           prevBorders.length === 1 &&

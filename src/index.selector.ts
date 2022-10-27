@@ -5,6 +5,8 @@ import { expr2xy, Rect, Range, Area } from 'table-renderer';
 function setCellValue(t: Table, value: string) {
   const { _selector } = t;
   if (_selector) {
+    _selector.clearCopy();
+
     const { _ranges } = _selector;
     _ranges.forEach((it) => {
       if (it) {
@@ -40,10 +42,15 @@ function reset(t: Table) {
             _selector.addArea(i, rectFunc(area, it, index), target);
           }
         });
-        const { _focusAreas, _focusRange } = _selector;
+        const { _focusRange, _copyRange } = _selector;
         if (_focusRange) {
           if (intersectsFunc(area.range, _focusRange)) {
             _selector.addFocusArea(rectFunc(area, _focusRange, index), target);
+          }
+        }
+        if (_copyRange) {
+          if (intersectsFunc(area.range, _copyRange)) {
+            _selector.addCopyArea(rectFunc(area, _copyRange, index), target);
           }
         }
       });
@@ -159,8 +166,24 @@ function move(t: Table, direction: 'up' | 'down' | 'left' | 'right') {
   }
 }
 
+function showCopy(t: Table) {
+  if (t._selector) {
+    t._selector.showCopy();
+    reset(t);
+  }
+}
+
+function clearCopy(t: Table) {
+  if (t._selector) {
+    t._selector.clearCopy();
+    reset(t);
+  }
+}
+
 export default {
   setCellValue,
   reset,
   move,
+  showCopy,
+  clearCopy,
 };

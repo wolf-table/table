@@ -9,6 +9,7 @@ const t = WolfTable.create(
     resizable: true,
     selectable: true,
     editable: true,
+    copyable: true,
   }
 )
   .freeze('D5')
