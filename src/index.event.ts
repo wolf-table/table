@@ -152,17 +152,20 @@ function keydownHandler(t: Table, evt: any) {
   } else if (code === 'KeyC' && (ctrlKey || metaKey)) {
     // copy
     const { _selector } = t;
-    if (t._copyable && _selector && _selector.ranges.length > 0) {
+    if (t._copyable && _selector && _selector._ranges.length > 0) {
       const items: any = {};
-      ['text/plain', 'text/html'].forEach((type) => {
-        const from = _selector.ranges[0].toString();
-        const text = type === 'text/html' ? t.toHtml(from) : toClipboardTextFrom(t, from);
-        items[type] = new Blob([text], { type });
-      });
-      navigator.clipboard.write([new ClipboardItem(items)]).then(
-        () => console.log('clipboard has writed success'),
-        (e) => console.log('clipboard has wirted failure: ', e)
-      );
+      const range = _selector._ranges[0];
+      if (range) {
+        ['text/plain', 'text/html'].forEach((type) => {
+          const from = range.toString();
+          const text = type === 'text/html' ? t.toHtml(from) : toClipboardTextFrom(t, from);
+          items[type] = new Blob([text], { type });
+        });
+        navigator.clipboard.write([new ClipboardItem(items)]).then(
+          () => console.log('clipboard has writed success'),
+          (e) => console.log('clipboard has wirted failure: ', e)
+        );
+      }
     }
   } else if (code === 'KeyV' && (ctrlKey || metaKey)) {
     if (t._editable) {

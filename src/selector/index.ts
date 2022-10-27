@@ -3,39 +3,66 @@ import { stylePrefix, borderWidth } from '../config';
 import { rangeUnoinMerges, TableData, row, col } from '../data';
 import HElement, { h } from '../element';
 
+class SelectArea {
+  _: HElement;
+  _rect: Rect | null = null;
+  _target: HElement | null = null;
+
+  constructor(el: HElement) {
+    this._ = el;
+  }
+
+  rect(value: Rect, padding: number = borderWidth) {
+    this._rect = value;
+    this._.css({
+      left: value.x + padding,
+      top: value.y + padding,
+      width: value.width - padding * 2,
+      height: value.height - padding * 2,
+    }).show();
+    return this;
+  }
+
+  target(value: HElement) {
+    value.append(this._);
+    this._target = value;
+    return this;
+  }
+
+  clear() {
+    const { _target, _ } = this;
+    if (_target) {
+      _target.remove(_);
+      this._target = null;
+    }
+  }
+}
+
 type Placement = 'all' | 'row-header' | 'col-header' | 'body';
+
 export default class Selector {
+  _placement: Placement = 'body';
+  _data: TableData;
+  _editable = false;
+
   _ranges: Range[] = [];
   _rowHeaderRanges: Range[] = [];
   _colHeaderRanges: Range[] = [];
+  _areas: SelectArea[] = [];
 
   _focus: [number, number] = [0, 0];
   _focusRange: Range | null = null;
-  _focusRect: Rect | null = null;
-  _focusArea: HElement = h('div', `${stylePrefix}-selector-focus`);
-  _focusTarget: HElement | null = null;
+  _focusAreas: SelectArea[] = [];
 
-  _placement: Placement = 'body';
-  _data: TableData;
+  _copyRange: Range | null = null;
+  _copyAreas: SelectArea[] = [];
 
-  _areas: HElement[] = [];
-  _rowHeaderAreas: HElement[] = [];
-  _colHeaderAreas: HElement[] = [];
-  _: HElement | null = null;
-  _corner: HElement;
-
-  _targets: HElement[] = [];
-  _targetChildren: Node[][] = [];
-
-  constructor(data: TableData) {
-    this._corner = h('div', 'corner');
+  constructor(data: TableData, editable: boolean) {
+    this._editable = editable;
     this._data = data;
   }
 
-  placement(): Placement;
-  placement(value: Placement): Selector;
-  placement(value?: Placement): any {
-    if (value === undefined) return this._placement;
+  placement(value: Placement) {
     this._placement = value;
     return this;
   }
@@ -43,7 +70,10 @@ export default class Selector {
   addRange(r: number, c: number, clear: boolean = true) {
     this._focus = [r, c];
     const range = rangeUnoinMerges(this._data, Range.create(r, c));
-    if (clear) this.clearRanges();
+    if (clear) {
+      this._ranges.length = 0;
+      this.clear();
+    }
     this._ranges.push(range);
     this._focusRange = range;
 
@@ -53,17 +83,12 @@ export default class Selector {
 
   unionRange(r: number, c: number) {
     const range = Range.create(r, c);
-    const { _ranges, _focusRange } = this;
+    const { _focusRange } = this;
     if (_focusRange) {
       const newRange = _focusRange.union(range);
-      _ranges.splice(-1, 1, rangeUnoinMerges(this._data, newRange));
+      this._ranges.splice(-1, 1, rangeUnoinMerges(this._data, newRange));
       updateHeaderRanges(this);
     }
-    return this;
-  }
-
-  clearRanges() {
-    this._ranges.length = 0;
     return this;
   }
 
@@ -105,93 +130,58 @@ export default class Selector {
     }
   }
 
-  setFocusRectAndTarget(rect: Rect, target: HElement) {
-    this._focusRect = rect;
-    this._focusArea
-      .css({
-        left: rect.x + borderWidth,
-        top: rect.y + borderWidth,
-        width: rect.width - borderWidth * 2,
-        height: rect.height - borderWidth * 2,
-      })
-      .show();
-    target.append(this._focusArea);
-    this._focusTarget = target;
-  }
-
-  addAreaRect(rangeIndex: number, rect: Rect) {
+  addArea(index: number, rect: Rect, target: HElement) {
     const { x, y, width, height } = rect;
     this._areas.push(
-      h('div', `${stylePrefix}-selector-area`)
-        .css({
-          left: x + borderWidth,
-          top: y + borderWidth,
-          width: width - borderWidth * 2,
-          height: height - borderWidth * 2,
-        })
-        .show()
+      new SelectArea(h('div', `${stylePrefix}-selector-area`)).rect(rect, borderWidth).target(target)
     );
 
-    const last = rangeIndex === this._ranges.length - 1;
-    if (last) {
-      this._ = h('div', `${stylePrefix}-selector`)
-        .css({
-          left: x - borderWidth / 2,
-          top: y - borderWidth / 2,
-          width: width - borderWidth,
-          height: height - borderWidth,
-        })
-        .show();
-
-      if (this._placement === 'body') this._.append(this._corner);
+    if (index === this._ranges.length - 1) {
+      const outline = h('div', `${stylePrefix}-selector`);
+      if (this._placement === 'body') outline.append(h('div', 'corner'));
+      this._areas.push(
+        new SelectArea(outline)
+          .rect(
+            {
+              x: x - borderWidth / 2,
+              y: y - borderWidth / 2,
+              width: width - borderWidth,
+              height: height - borderWidth,
+            },
+            0
+          )
+          .target(target)
+      );
     }
     return this;
   }
 
-  addRowHeaderAreaRect({ x, y, width, height }: Rect) {
-    this._rowHeaderAreas.push(
-      h('div', `${stylePrefix}-selector-area row-header`).css({ left: x, top: y, width, height }).show()
+  addRowHeaderArea(rect: Rect, target: HElement) {
+    this._areas.push(
+      new SelectArea(h('div', `${stylePrefix}-selector-area row-header`)).rect(rect, 0).target(target)
     );
     return this;
   }
 
-  addColHeaderAreaRect({ x, y, width, height }: Rect) {
-    this._colHeaderAreas.push(
-      h('div', `${stylePrefix}-selector-area col-header`).css({ left: x, top: y, width, height }).show()
+  addColHeaderArea(rect: Rect, target: HElement) {
+    this._areas.push(
+      new SelectArea(h('div', `${stylePrefix}-selector-area col-header`)).rect(rect, 0).target(target)
     );
     return this;
   }
 
-  addTarget(target: HElement) {
-    let areas: any[];
-    areas = [...this._areas, ...this._rowHeaderAreas, ...this._colHeaderAreas];
-    if (this._areas.length > 0 && this._) areas.push(this._);
-    target.append(...areas);
-    this._targetChildren.push(areas);
-    this._targets.push(target);
-
-    // clear areas
-    this.clearAreas();
+  addFocusArea(rect: Rect, target: HElement) {
+    this._focusAreas.push(
+      new SelectArea(h('div', `${stylePrefix}-selector-focus`)).rect(rect).target(target)
+    );
     return this;
   }
 
-  clearTargets() {
-    const { _targets, _focusTarget } = this;
-    if (_focusTarget && this._focusArea) {
-      _focusTarget.remove(this._focusArea);
-      this._focusTarget = null;
-    }
-    if (_targets && _targets.length > 0) {
-      _targets.forEach((it, index) => it.remove(...this._targetChildren[index]));
-      [this._targetChildren, _targets].forEach((it) => (it.length = 0));
-      this.clearAreas();
-    }
-    return this;
-  }
-
-  clearAreas() {
-    [this._rowHeaderAreas, this._colHeaderAreas, this._areas].forEach((it) => (it.length = 0));
-    this._ = null;
+  clear() {
+    [this._areas, this._focusAreas].forEach((it) => {
+      it.forEach((it1) => it1.clear());
+      it.length = 0;
+    });
   }
 }
 
@@ -220,13 +210,15 @@ function mergedRanges(
 function updateHeaderRanges(s: Selector) {
   const rowHeaderRanges = [];
   const colHeaderRanges = [];
-  for (let i = 0; i < s._ranges.length; i += 1) {
-    const { startRow, startCol, endRow, endCol } = s._ranges[i];
-    if (startRow > 0 || endRow > 0) {
-      rowHeaderRanges.push(Range.create(startRow, 0, endRow, 0));
-    }
-    if (startCol > 0 || endCol > 0) {
-      colHeaderRanges.push(Range.create(0, startCol, 0, endCol));
+  for (let range of s._ranges) {
+    if (range) {
+      const { startRow, startCol, endRow, endCol } = range;
+      if (startRow > 0 || endRow > 0) {
+        rowHeaderRanges.push(Range.create(startRow, 0, endRow, 0));
+      }
+      if (startCol > 0 || endCol > 0) {
+        colHeaderRanges.push(Range.create(0, startCol, 0, endCol));
+      }
     }
   }
 

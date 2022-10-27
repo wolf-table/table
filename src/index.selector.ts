@@ -6,10 +6,12 @@ function setCellValue(t: Table, value: string) {
   const { _selector } = t;
   if (_selector) {
     const { _ranges } = _selector;
-    _ranges.forEach((range) => {
-      range.each((r, c) => {
-        t.cell(r, c, { value });
-      });
+    _ranges.forEach((it) => {
+      if (it) {
+        it.each((r, c) => {
+          t.cell(r, c, { value });
+        });
+      }
     });
     t.render();
   }
@@ -20,65 +22,60 @@ function reset(t: Table) {
   const { _rowHeader, _colHeader, viewport } = t._renderer;
   if (_selector && viewport) {
     const { _placement } = _selector;
-    _selector.clearTargets();
+    _selector.clear();
 
     const x = _rowHeader.width;
     const y = _colHeader.height;
     const width = t._width() - x;
     const height = t._height() - y;
 
-    const addAreaRects = (
+    const addAreas = (
       intersectsFunc: (r: Range, r1: Range) => boolean,
       rectFunc: (area: Area, r: Range, areaIndex: number) => Rect
     ) => {
       viewport.areas.forEach((area, index) => {
-        let intersects = false;
         const target = _overlayer.areas[index];
-        _selector._ranges.forEach((r, i) => {
-          if (intersectsFunc(area.range, r)) {
-            intersects = true;
-            _selector.addAreaRect(i, rectFunc(area, r, index));
+        _selector._ranges.forEach((it, i) => {
+          if (intersectsFunc(area.range, it)) {
+            _selector.addArea(i, rectFunc(area, it, index), target);
           }
         });
-        const { _focusRange } = _selector;
+        const { _focusAreas, _focusRange } = _selector;
         if (_focusRange) {
           if (intersectsFunc(area.range, _focusRange)) {
-            _selector.setFocusRectAndTarget(rectFunc(area, _focusRange, index), target);
+            _selector.addFocusArea(rectFunc(area, _focusRange, index), target);
           }
         }
-        if (intersects) _selector.addTarget(target);
       });
     };
 
-    const addHeaderAreaRects = (type: 'row' | 'col', areaIndexes: number[]) => {
+    const addHeaderAreas = (type: 'row' | 'col', areaIndexes: number[]) => {
       areaIndexes.forEach((index) => {
         const area = viewport.headerAreas[index];
-        let intersects = false;
-        (type === 'row' ? _selector._rowHeaderRanges : _selector._colHeaderRanges).forEach((r) => {
-          if (type === 'row') {
-            if (area.range.intersectsRow(r.startRow, r.endRow)) {
-              intersects = true;
-              _selector.addRowHeaderAreaRect(area.rectRow(r.startRow, r.endRow));
+        const target = _overlayer.headerAreas[index];
+        if (type === 'row') {
+          _selector._rowHeaderRanges.forEach((it) => {
+            if (area.range.intersectsRow(it.startRow, it.endRow)) {
+              _selector.addRowHeaderArea(area.rectRow(it.startRow, it.endRow), target);
             }
-          } else {
-            if (area.range.intersectsCol(r.startCol, r.endCol)) {
-              intersects = true;
-              _selector.addColHeaderAreaRect(area.rectCol(r.startCol, r.endCol));
+          });
+        } else {
+          _selector._colHeaderRanges.forEach((it) => {
+            if (area.range.intersectsCol(it.startCol, it.endCol)) {
+              _selector.addColHeaderArea(area.rectCol(it.startCol, it.endCol), target);
             }
-          }
-        });
-        if (intersects) _selector.addTarget(_overlayer.headerAreas[index]);
+          });
+        }
       });
     };
 
     if (_placement === 'all') {
       _selector
-        .addAreaRect(0, { x, y, width, height })
-        .addRowHeaderAreaRect({ x: 0, y, width: x, height })
-        .addColHeaderAreaRect({ x, y: 0, width, height: y })
-        .addTarget(_container);
+        .addArea(0, { x, y, width, height }, _container)
+        .addRowHeaderArea({ x: 0, y, width: x, height }, _container)
+        .addColHeaderArea({ x, y: 0, width, height: y }, _container);
     } else if (_placement === 'row-header') {
-      addAreaRects(
+      addAreas(
         (r, r1) => r.intersectsRow(r1.startRow, r1.endRow),
         (area, r1, areaIndex) => {
           const rectr = area.rectRow(r1.startRow, r1.endRow);
@@ -88,14 +85,12 @@ function reset(t: Table) {
           return rectr;
         }
       );
-      addHeaderAreaRects('row', [2, 3]);
+      addHeaderAreas('row', [2, 3]);
       [0, 1].forEach((index) => {
-        _selector
-          .addColHeaderAreaRect({ x: 0, y: 0, width, height: y })
-          .addTarget(_overlayer.headerAreas[index]);
+        _selector.addColHeaderArea({ x: 0, y: 0, width, height: y }, _overlayer.headerAreas[index]);
       });
     } else if (_placement === 'col-header') {
-      addAreaRects(
+      addAreas(
         (r, r1) => r.intersectsCol(r1.startCol, r1.endCol),
         (area, r1, areaIndex) => {
           const rect = area.rectCol(r1.startCol, r1.endCol);
@@ -105,19 +100,17 @@ function reset(t: Table) {
           return rect;
         }
       );
-      addHeaderAreaRects('col', [0, 1]);
+      addHeaderAreas('col', [0, 1]);
       [2, 3].forEach((index) => {
-        _selector
-          .addRowHeaderAreaRect({ x: 0, y: 0, height, width: x })
-          .addTarget(_overlayer.headerAreas[index]);
+        _selector.addRowHeaderArea({ x: 0, y: 0, height, width: x }, _overlayer.headerAreas[index]);
       });
     } else {
-      addAreaRects(
+      addAreas(
         (r, r1) => r.intersects(r1),
         (area, r1) => area.rect(r1)
       );
-      addHeaderAreaRects('row', [2, 3]);
-      addHeaderAreaRects('col', [0, 1]);
+      addHeaderAreas('row', [2, 3]);
+      addHeaderAreas('col', [0, 1]);
     }
   }
 }

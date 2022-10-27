@@ -55,7 +55,7 @@ export default class Editor {
     return this._visible;
   }
 
-  appendTo(target: HElement): Editor {
+  target(target: HElement): Editor {
     target.append(this._);
     return this;
   }
@@ -79,7 +79,7 @@ export default class Editor {
     this.hide();
   }
 
-  show(rect: Rect | null) {
+  rect(rect: Rect | null) {
     if (rect) {
       this._visible = true;
       this._rect = rect;
@@ -97,6 +97,7 @@ export default class Editor {
         el.setSelectionRange(position, position);
       }, 0);
     }
+    return this;
   }
 
   hide() {
