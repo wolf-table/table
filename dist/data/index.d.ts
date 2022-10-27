@@ -1,4 +1,4 @@
-import { Cell, CellStyle, Border, Row, Col } from 'table-renderer';
+import { Cell, Style, Border, Row, Col } from 'table-renderer';
 import Cells, { cellValue, cellValueString } from './cells';
 import { scrollx, scrolly, scrollResetRows, scrollResetCols } from './scroll';
 import { isMerged, merge, unmerge, rangeUnoinMerges } from './merge';
@@ -17,19 +17,20 @@ export declare type DataCols = {
     [key: number]: DataCol;
 };
 export declare type DataCell = Cell;
-export declare type DataIndexCell = [number, number, DataCell];
+export declare type IndexDataCell = [number, number, DataCell];
+export declare type DataCellValue = string | number | null | undefined;
 export declare type TableData = {
     rows: DataRows;
     cols: DataCols;
     rowHeight: number;
     colWidth: number;
     scroll: [number, number, number, number];
-    style: CellStyle;
-    styles?: Partial<CellStyle>[];
-    borders?: Border[];
+    style: Style;
+    styles: Partial<Style>[];
+    borders: Border[];
+    merges: string[];
+    cells: IndexDataCell[];
     freeze?: string;
-    merges?: string[];
-    cells?: DataIndexCell[];
 };
 export declare type FormulaParser = (formula: string) => string | number;
 export declare function defaultData(): TableData;

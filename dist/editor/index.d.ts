@@ -19,11 +19,11 @@ export default class Editor {
     _moveChange: moveChanger;
     constructor(target: HElement, maxWidth: () => number, maxHeight: () => number, fontSize: string, fontFamily: string);
     get visible(): boolean;
-    appendTo(target: HElement): Editor;
+    target(target: HElement): Editor;
     value(): string;
     value(text: string): void;
     finished(): void;
-    show(rect: Rect | null): void;
+    rect(rect: Rect | null): this;
     hide(): void;
     inputChange(value: InputChanger): void;
     moveChange(value: moveChanger): void;

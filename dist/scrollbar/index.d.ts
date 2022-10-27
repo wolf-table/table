@@ -12,6 +12,8 @@ export default class Scrollbar {
     get value(): number;
     change(value: ScrollbarChanger): this;
     scrollBy(value: number, moveByCell?: boolean): Scrollbar;
+    scrollToStart(): this;
+    scrollToEnd(): this;
     scroll(): any;
     scroll(value: number): Scrollbar;
     resize(value: number, contentValue: number): this;
