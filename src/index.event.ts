@@ -18,6 +18,7 @@ export function initEvents(t: Table) {
 }
 
 function mousedownHandler(t: Table, evt: any) {
+  console.log('evt:', evt);
   const { _selector, _renderer, _editor } = t;
   const { viewport } = _renderer;
   let cache = { row: 0, col: 0 };
@@ -27,10 +28,11 @@ function mousedownHandler(t: Table, evt: any) {
     if (vcell) {
       const { placement, row, col } = vcell;
       if (shiftKey) {
-        _selector.unionRange(row, col);
+        selector.unionRange(t, row, col);
       } else {
         cache = { row, col };
-        _selector.placement(placement).addRange(row, col, !(metaKey || ctrlKey));
+        _selector.placement(placement);
+        selector.addRange(t, row, col, !(metaKey || ctrlKey));
       }
       selector.reset(t);
 
@@ -47,7 +49,7 @@ function mousedownHandler(t: Table, evt: any) {
           if (c1) {
             const { row, col } = c1;
             if (row != cache.row || col !== cache.col) {
-              _selector.unionRange(row, col);
+              selector.unionRange(t, row, col);
               selector.reset(t);
               cache = { row, col };
             }

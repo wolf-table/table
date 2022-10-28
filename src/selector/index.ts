@@ -1,6 +1,5 @@
 import { Range, Rect } from 'table-renderer';
 import { stylePrefix, borderWidth } from '../config';
-import { rangeUnoinMerges, TableData, row, col } from '../data';
 import HElement, { h } from '../element';
 
 class SelectArea {
@@ -53,7 +52,6 @@ type Placement = 'all' | 'row-header' | 'col-header' | 'body';
 
 export default class Selector {
   _placement: Placement = 'body';
-  _data: TableData;
   _editable = false;
 
   _ranges: Range[] = [];
@@ -68,9 +66,11 @@ export default class Selector {
   _copyRange: Range | null | undefined = null;
   _copyAreas: SelectArea[] = [];
 
-  constructor(data: TableData, editable: boolean) {
+  _autofillRange: Range | null = null;
+  _autofillArea: SelectArea = new SelectArea('selector-autofill');
+
+  constructor(editable: boolean) {
     this._editable = editable;
-    this._data = data;
   }
 
   placement(value: Placement) {
@@ -78,9 +78,12 @@ export default class Selector {
     return this;
   }
 
-  addRange(r: number, c: number, clear: boolean = true) {
+  focus(r: number, c: number) {
     this._focus = [r, c];
-    const range = rangeUnoinMerges(this._data, Range.create(r, c));
+    return this;
+  }
+
+  addRange(range: Range, clear: boolean = true) {
     if (clear) {
       this._ranges.length = 0;
       this.clear();
@@ -92,65 +95,11 @@ export default class Selector {
     return this;
   }
 
-  unionRange(r: number, c: number) {
-    const range = Range.create(r, c);
+  updateLastRange(unionRange: (focusRange: Range) => Range) {
     const { _focusRange } = this;
     if (_focusRange) {
-      const newRange = _focusRange.union(range);
-      this._ranges.splice(-1, 1, rangeUnoinMerges(this._data, newRange));
+      this._ranges.splice(-1, 1, unionRange(_focusRange));
       updateHeaderRanges(this);
-    }
-    return this;
-  }
-
-  move(type: 'up' | 'down' | 'left' | 'right', step?: number) {
-    const { _focusRange } = this;
-    if (_focusRange) {
-      const { startRow, startCol, endRow, endCol } = _focusRange;
-      const { _data } = this;
-      const { rows, cols } = _data;
-
-      let [r, c] = this._focus;
-
-      if (step) {
-        const getShowRowIndex = (index: number, offset: number) => {
-          for (;;) {
-            const r = row(_data, index);
-            if (r && r.hide) index += offset;
-            else return index;
-          }
-        };
-        const getShowColIndex = (index: number, offset: number) => {
-          for (;;) {
-            const r = col(_data, index);
-            if (r && r.hide) index += offset;
-            else return index;
-          }
-        };
-
-        if (type === 'up') {
-          r = getShowRowIndex(startRow - step, -1);
-        } else if (type === 'down') {
-          r = getShowRowIndex(endRow + step, 1);
-        } else if (type === 'left') {
-          c = getShowColIndex(startCol - step, -1);
-        } else if (type === 'right') {
-          c = getShowColIndex(endCol + step, 1);
-        }
-      } else {
-        if (type === 'up') {
-          r = 0;
-        } else if (type === 'down') {
-          r = rows.len - 1;
-        } else if (type === 'left') {
-          c = 0;
-        } else if (type === 'right') {
-          c = cols.len - 1;
-        }
-      }
-      if (r >= 0 && r <= rows.len - 1 && c >= 0 && c <= cols.len - 1) {
-        this.addRange(r, c, true);
-      }
     }
   }
 
@@ -167,7 +116,9 @@ export default class Selector {
           height: height - borderWidth,
         })
         .target(target);
-      if (this._placement === 'body') outline.append(h('div', 'corner'));
+      if (this._placement === 'body') {
+        outline.append(h('div', 'corner'));
+      }
       this._areas.push(outline);
     }
     return this;
@@ -212,6 +163,11 @@ export default class Selector {
       it.clear();
     });
     this._copyAreas.length = 0;
+  }
+
+  setAuotfillArea(rect: Rect, target: HElement) {
+    this._autofillArea.rect(rect).target(target);
+    return this;
   }
 
   clear() {

@@ -1,6 +1,7 @@
 import Table from '.';
 import { borderWidth } from './config';
 import { expr2xy, Rect, Range, Area } from 'table-renderer';
+import { rangeUnoinMerges } from './data';
 
 function setCellValue(t: Table, value: string) {
   const { _selector } = t;
@@ -17,6 +18,19 @@ function setCellValue(t: Table, value: string) {
     });
     t.render();
   }
+}
+
+function addRange(t: Table, r: number, c: number, clear: boolean) {
+  const { _selector } = t;
+  if (_selector) {
+    _selector.focus(r, c).addRange(rangeUnoinMerges(t._data, Range.create(r, c)), clear);
+  }
+}
+
+function unionRange(t: Table, r: number, c: number) {
+  t._selector?.updateLastRange((focusRange) => {
+    return rangeUnoinMerges(t._data, focusRange.union(Range.create(r, c)));
+  });
 }
 
 function reset(t: Table) {
@@ -127,7 +141,55 @@ function move(t: Table, direction: 'up' | 'down' | 'left' | 'right', step?: numb
   const { viewport } = t._renderer;
   if (_selector && viewport) {
     let [ofr, ofc] = _selector._focus;
-    _selector.move(direction, step);
+
+    const { _focusRange } = _selector;
+    // next [row, col]
+    if (_focusRange) {
+      const { startRow, startCol, endRow, endCol } = _focusRange;
+      const { rows, cols } = _data;
+
+      let [r, c] = _selector._focus;
+
+      if (step) {
+        const getShowRowIndex = (index: number, offset: number) => {
+          for (;;) {
+            const r = t.row(index);
+            if (r && r.hide) index += offset;
+            else return index;
+          }
+        };
+        const getShowColIndex = (index: number, offset: number) => {
+          for (;;) {
+            const r = t.col(index);
+            if (r && r.hide) index += offset;
+            else return index;
+          }
+        };
+
+        if (direction === 'up') {
+          r = getShowRowIndex(startRow - step, -1);
+        } else if (direction === 'down') {
+          r = getShowRowIndex(endRow + step, 1);
+        } else if (direction === 'left') {
+          c = getShowColIndex(startCol - step, -1);
+        } else if (direction === 'right') {
+          c = getShowColIndex(endCol + step, 1);
+        }
+      } else {
+        if (direction === 'up') {
+          r = 0;
+        } else if (direction === 'down') {
+          r = rows.len - 1;
+        } else if (direction === 'left') {
+          c = 0;
+        } else if (direction === 'right') {
+          c = cols.len - 1;
+        }
+      }
+      if (r >= 0 && r <= rows.len - 1 && c >= 0 && c <= cols.len - 1) {
+        addRange(t, r, c, true);
+      }
+    }
 
     // move to start or end
     if (!step) {
@@ -200,6 +262,8 @@ function clearCopy(t: Table) {
 
 export default {
   setCellValue,
+  addRange,
+  unionRange,
   reset,
   move,
   showCopy,

@@ -10,7 +10,7 @@ function init(t: Table) {
   _editor.moveChange((direction, value) => {
     selector.setCellValue(t, value);
     if (direction !== 'none' && _selector) {
-      selector.move(t, direction);
+      selector.move(t, direction, 1);
       t._canvas.focus();
     }
   });

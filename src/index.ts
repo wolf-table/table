@@ -168,7 +168,7 @@ export default class Table {
     resizeContentRect(this);
 
     if (options?.selectable) {
-      this._selector = new Selector(this._data, !!options.editable);
+      this._selector = new Selector(!!options.editable);
     }
 
     // scroll
@@ -446,7 +446,7 @@ export default class Table {
       [endRow, endCol] = fromHtml(this, data, [startRow, startCol]);
     }
     if (endRow > 0 || endCol > 0) {
-      _selector?.unionRange(endRow, endCol);
+      selector.unionRange(this, endRow, endCol);
       selector.reset(this);
     }
     return this;

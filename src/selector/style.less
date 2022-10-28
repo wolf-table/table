@@ -9,6 +9,7 @@
   z-index: 2;
 
   .corner {
+    pointer-events: auto;
     background: @primary-color;
     border: 2px solid #ffffff;
     height: 5px;
@@ -16,6 +17,7 @@
     position: absolute;
     right: -5px;
     bottom: -5px;
+    cursor: crosshair;
   }
 }
 .@{style-prefix}-selector-area {
@@ -36,4 +38,10 @@
   pointer-events: none;
   border: 2px dashed @primary-color;
   z-index: 3;
+}
+.@{style-prefix}-selector-autofill {
+  display: none;
+  position: absolute;
+  pointer-events: none;
+  border: 2px dashed rgba(0, 0, 0, 0.45);
 }
