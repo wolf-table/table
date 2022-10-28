@@ -168,7 +168,7 @@ export default class Table {
     resizeContentRect(this);
 
     if (options?.selectable) {
-      this._selector = new Selector(!!options.editable);
+      selector.init(this);
     }
 
     // scroll

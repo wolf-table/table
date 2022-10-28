@@ -2,6 +2,11 @@ import Table from '.';
 import { borderWidth } from './config';
 import { expr2xy, Rect, Range, Area } from 'table-renderer';
 import { rangeUnoinMerges } from './data';
+import Selector from './selector';
+
+function init(t: Table) {
+  t._selector = new Selector(!!t._editable);
+}
 
 function setCellValue(t: Table, value: string) {
   const { _selector } = t;
@@ -21,10 +26,7 @@ function setCellValue(t: Table, value: string) {
 }
 
 function addRange(t: Table, r: number, c: number, clear: boolean) {
-  const { _selector } = t;
-  if (_selector) {
-    _selector.focus(r, c).addRange(rangeUnoinMerges(t._data, Range.create(r, c)), clear);
-  }
+  t._selector?.focus(r, c).addRange(rangeUnoinMerges(t._data, Range.create(r, c)), clear);
 }
 
 function unionRange(t: Table, r: number, c: number) {
@@ -261,6 +263,7 @@ function clearCopy(t: Table) {
 }
 
 export default {
+  init,
   setCellValue,
   addRange,
   unionRange,
