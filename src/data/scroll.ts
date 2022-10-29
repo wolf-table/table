@@ -21,19 +21,21 @@ function scrollTo(
   }
   if (value > 0) {
     if (direction === '+') {
-      // const max = type === 'row' ? data.rows.len : data.cols.len;
       for (let i = start; ; i += 1) {
         if (newValue >= value) break;
-        newValue += getValue(freezeOffset + i);
+        const v = getValue(freezeOffset + i);
+        newValue += v;
         data.scroll[scrollIndex] = i + 1;
         changed = true;
       }
     } else {
       for (let i = start; ; i -= 1) {
         if (newValue <= value) break;
-        newValue -= getValue(freezeOffset + i - 1);
+        const v = getValue(freezeOffset + i - 1);
+        newValue -= v;
         data.scroll[scrollIndex] = i - 1;
         changed = true;
+        if (v > 0) break;
       }
     }
   } else {

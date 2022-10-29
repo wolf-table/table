@@ -3,6 +3,7 @@ import { borderWidth } from './config';
 import { expr2xy, Rect, Range, Area } from 'table-renderer';
 import { rangeUnoinMerges } from './data';
 import Selector from './selector';
+import scrollbar from './index.scrollbar';
 
 function init(t: Table) {
   t._selector = new Selector(!!t._editable);
@@ -52,7 +53,7 @@ function reset(t: Table) {
       rectFunc: (area: Area, r: Range, areaIndex: number) => Rect
     ) => {
       viewport.areas.forEach((area, index) => {
-        const target = _overlayer.areas[index];
+        const target = _overlayer._areas[index];
         _selector._ranges.forEach((it, i) => {
           if (intersectsFunc(area.range, it)) {
             _selector.addArea(i, rectFunc(area, it, index), target);
@@ -75,7 +76,7 @@ function reset(t: Table) {
     const addHeaderAreas = (type: 'row' | 'col', areaIndexes: number[]) => {
       areaIndexes.forEach((index) => {
         const area = viewport.headerAreas[index];
-        const target = _overlayer.headerAreas[index];
+        const target = _overlayer._headerAreas[index];
         if (type === 'row') {
           _selector._rowHeaderRanges.forEach((it) => {
             if (area.range.intersectsRow(it.startRow, it.endRow)) {
@@ -110,7 +111,7 @@ function reset(t: Table) {
       );
       addHeaderAreas('row', [2, 3]);
       [0, 1].forEach((index) => {
-        _selector.addColHeaderArea({ x: 0, y: 0, width, height: y }, _overlayer.headerAreas[index]);
+        _selector.addColHeaderArea({ x: 0, y: 0, width, height: y }, _overlayer._headerAreas[index]);
       });
     } else if (_placement === 'col-header') {
       addAreas(
@@ -125,7 +126,7 @@ function reset(t: Table) {
       );
       addHeaderAreas('col', [0, 1]);
       [2, 3].forEach((index) => {
-        _selector.addRowHeaderArea({ x: 0, y: 0, height, width: x }, _overlayer.headerAreas[index]);
+        _selector.addRowHeaderArea({ x: 0, y: 0, height, width: x }, _overlayer._headerAreas[index]);
       });
     } else {
       addAreas(
@@ -223,27 +224,16 @@ function move(t: Table, direction: 'up' | 'down' | 'left' | 'right', step?: numb
     }
 
     // scroll by step
-    const [, , , area4] = viewport.areas;
     const [fr, fc] = _selector._focus;
-    const { startRow, startCol, endRow, endCol } = area4.range;
-    if (viewport.inAreas(fr, fc) && endRow !== fr && endCol !== fc) {
-      reset(t);
-    } else {
+    if (_focusRange) {
       const { _focusRange } = _selector;
-      let [rows, cols] = [Math.abs(fr - ofr), Math.abs(fc - ofc)];
+      let [rows, cols] = [0, 0];
       if (_focusRange) {
         rows += _focusRange.rows;
         cols += _focusRange.cols;
       }
-      if (direction === 'up') {
-        _vScrollbar?.scrollBy(-t.rowsHeight(fr, fr + rows), true);
-      } else if (direction === 'down') {
-        _vScrollbar?.scrollBy(t.rowsHeight(startRow, startRow + rows), true);
-      } else if (direction === 'left') {
-        _hScrollbar?.scrollBy(-t.colsWidth(fc, fc + cols), true);
-      } else if (direction === 'right') {
-        _hScrollbar?.scrollBy(t.colsWidth(startCol, startCol + cols), true);
-      }
+      scrollbar.auto(t, Range.create(fr, fc, fr + rows, fc + cols));
+      reset(t);
     }
   }
 }

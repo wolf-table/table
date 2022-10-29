@@ -17,6 +17,15 @@ class SelectArea {
     return this;
   }
 
+  offset() {
+    if (this._rect && this._target) {
+      const offset = this._target.offset();
+      const { x, y, width, height } = this._rect;
+      return { x: x + offset.x, y: y + offset.y, width, height };
+    }
+    return null;
+  }
+
   rect(value: Rect) {
     this._rect = value;
     this._.css({

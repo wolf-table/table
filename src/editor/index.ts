@@ -118,7 +118,7 @@ export default class Editor {
 
 function resizeSize(editor: Editor) {
   const { _value, _rect, _maxWidth, _maxHeight, _textMeasure } = editor;
-  const txts = _value.split('\n');
+  // const txts = _value.split('\n');
   let measureHtml = _value.replace('\n', '<br/>');
   if (_value.endsWith('\n')) measureHtml += 'T';
   _textMeasure.html(measureHtml);

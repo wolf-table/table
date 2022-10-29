@@ -80,6 +80,8 @@ export type TableOptions = {
   renderer?: TableRendererOptions;
 };
 
+export type MoveDirection = 'up' | 'down' | 'left' | 'right';
+
 export default class Table {
   // renderer options
   _rendererOptions: TableRendererOptions = {};

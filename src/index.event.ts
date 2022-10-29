@@ -18,9 +18,14 @@ export function initEvents(t: Table) {
 }
 
 function mousedownHandler(t: Table, evt: any) {
-  console.log('evt:', evt);
+  // console.log('evt:', evt);
   const { _selector, _renderer, _editor } = t;
   const { viewport } = _renderer;
+
+  if (_editor) {
+    _editor.finished();
+  }
+
   let cache = { row: 0, col: 0 };
   if (_selector && viewport) {
     const { offsetX, offsetY, ctrlKey, metaKey, shiftKey } = evt;
@@ -63,10 +68,6 @@ function mousedownHandler(t: Table, evt: any) {
         bind(window, 'mouseup', upHandler);
       }
     }
-  }
-
-  if (_editor) {
-    _editor.finished();
   }
 }
 

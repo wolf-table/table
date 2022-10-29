@@ -46,18 +46,9 @@ export default class Scrollbar {
     return this;
   }
 
-  scrollBy(value: number, moveByCell?: boolean): Scrollbar {
+  scrollBy(value: number): Scrollbar {
     if (value) {
-      const { _value, _maxValue } = this;
-      let nvalue = _value + value;
-      if (moveByCell === true) {
-        if (nvalue >= 0 && nvalue <= _maxValue) {
-          nvalue = nvalue < Math.abs(value) ? 0 : nvalue;
-        } else {
-          nvalue = _maxValue;
-        }
-      }
-      this.scroll(nvalue);
+      this.scroll(this._value + value);
     }
     return this;
   }
@@ -75,8 +66,10 @@ export default class Scrollbar {
   scroll(): any;
   scroll(value: number): Scrollbar;
   scroll(value?: number): any {
-    const { _, _type } = this;
+    const { _, _type, _maxValue } = this;
     if (value !== undefined) {
+      if (value < 0) value = 0;
+      else if (value > _maxValue) value = _maxValue;
       if (_type === 'vertical') {
         _.scrolly(value);
       } else {
