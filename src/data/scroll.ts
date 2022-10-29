@@ -21,17 +21,17 @@ function scrollTo(
   }
   if (value > 0) {
     if (direction === '+') {
-      const max = type === 'row' ? data.rows.len : data.cols.len;
-      for (let i = start; i < max; i += 1) {
+      // const max = type === 'row' ? data.rows.len : data.cols.len;
+      for (let i = start; ; i += 1) {
         if (newValue >= value) break;
         newValue += getValue(freezeOffset + i);
         data.scroll[scrollIndex] = i + 1;
         changed = true;
       }
     } else {
-      for (let i = start; i > 0; i -= 1) {
+      for (let i = start; ; i -= 1) {
         if (newValue <= value) break;
-        newValue -= getValue(freezeOffset + i);
+        newValue -= getValue(freezeOffset + i - 1);
         data.scroll[scrollIndex] = i - 1;
         changed = true;
       }
