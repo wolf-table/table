@@ -132,6 +132,10 @@ export default class HElement {
     return { x: _.offsetLeft, y: _.offsetTop, width: _.offsetWidth, height: _.offsetHeight };
   }
 
+  computedStyle() {
+    return window.getComputedStyle(this._);
+  }
+
   show(flag: boolean = true) {
     this.css('display', flag ? 'block' : 'none');
     return this;
