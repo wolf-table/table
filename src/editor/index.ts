@@ -10,6 +10,7 @@ export default class Editor {
   _: HElement = h('div', `${stylePrefix}-editor`);
   _text: HElement = h('textarea', '');
   _textMeasure: HElement = h('div', 'measure');
+  _target: HElement | null = null;
 
   _rect: Rect | null = null;
   _value: string = '';
@@ -57,6 +58,7 @@ export default class Editor {
 
   target(target: HElement): Editor {
     target.append(this._);
+    this._target = target;
     return this;
   }
 
@@ -117,24 +119,29 @@ export default class Editor {
 }
 
 function resizeSize(editor: Editor) {
-  const { _value, _rect, _maxWidth, _maxHeight, _textMeasure } = editor;
+  const { _, _value, _rect, _textMeasure, _target } = editor;
+
   // const txts = _value.split('\n');
   let measureHtml = _value.replace('\n', '<br/>');
   if (_value.endsWith('\n')) measureHtml += 'T';
   _textMeasure.html(measureHtml);
-  if (_rect) {
-    const maxWidth = _maxWidth() - _rect.x;
-    const maxHeight = _maxHeight() - _rect.y;
-    _textMeasure.css('maxWidth', `${maxWidth}px`);
+
+  if (_rect && _target) {
+    const padding = parseInt(_textMeasure.computedStyle().getPropertyValue('padding'));
+    const toffset = _target.offset();
+    const maxWidth = toffset.width - _rect.x - borderWidth;
+    const maxHeight = toffset.height - _rect.y - borderWidth;
+    _.css('max-width', `${maxWidth}px`);
+    _textMeasure.css('max-width', `${maxWidth - padding * 2}px`);
     const { width, height } = _textMeasure.rect();
     const minWidth = _rect.width - borderWidth;
-    if (width > minWidth && width < maxWidth) {
-      editor._.css({ width });
+    if (width > minWidth) {
+      _.css({ width: width });
     }
-    if (height > _rect.height && height < maxHeight) {
-      editor._.css({ height });
+    if (height > _rect.height && height <= maxHeight) {
+      _.css({ height: height });
     } else if (height < _rect.height) {
-      editor._.css({ height: _rect.height - borderWidth });
+      _.css({ height: _rect.height - borderWidth });
     }
   }
 }
