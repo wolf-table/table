@@ -37,8 +37,8 @@ class SelectArea {
     return this;
   }
 
-  target(value: HElement) {
-    value.append(this._);
+  target(value: HElement, autoAppend = true) {
+    if (autoAppend) value.append(this._);
     this._target = value;
     return this;
   }
@@ -69,8 +69,9 @@ export default class Selector {
   _areas: SelectArea[] = [];
 
   _focus: [number, number] = [0, 0];
+  // _focusBodyRange: Range | null = null;
   _focusRange: Range | null = null;
-  _focusAreas: SelectArea[] = [];
+  _focusArea: SelectArea | null = null;
 
   _copyRange: Range | null | undefined = null;
   _copyAreas: SelectArea[] = [];
@@ -87,8 +88,9 @@ export default class Selector {
     return this;
   }
 
-  focus(r: number, c: number) {
-    this._focus = [r, c];
+  focus(row: number, col: number, range: Range) {
+    this._focus = [row, col];
+    this._focusRange = range;
     return this;
   }
 
@@ -98,8 +100,6 @@ export default class Selector {
       this.clear();
     }
     this._ranges.push(range);
-    this._focusRange = range;
-
     updateHeaderRanges(this);
     return this;
   }
@@ -112,24 +112,24 @@ export default class Selector {
     }
   }
 
-  addArea(index: number, rect: Rect, target: HElement) {
+  addAreaOutline(rect: Rect, target: HElement) {
     const { x, y, width, height } = rect;
-    this._areas.push(new SelectArea(`selector-area`, true).rect(rect).target(target));
-
-    if (index === this._ranges.length - 1) {
-      const outline = new SelectArea(`selector`, true)
-        .rect({
-          x: x - borderWidth / 2,
-          y: y - borderWidth / 2,
-          width: width - borderWidth,
-          height: height - borderWidth,
-        })
-        .target(target);
-      if (this._placement === 'body') {
-        outline.append(h('div', 'corner'));
-      }
-      this._areas.push(outline);
+    const outline = new SelectArea(`selector`, true)
+      .rect({
+        x: x - borderWidth / 2,
+        y: y - borderWidth / 2,
+        width: width - borderWidth,
+        height: height - borderWidth,
+      })
+      .target(target);
+    if (this._placement === 'body') {
+      outline.append(h('div', 'corner'));
     }
+    this._areas.push(outline);
+  }
+
+  addArea(rect: Rect, target: HElement) {
+    this._areas.push(new SelectArea(`selector-area`, true).rect(rect).target(target));
     return this;
   }
 
@@ -140,11 +140,6 @@ export default class Selector {
 
   addColHeaderArea(rect: Rect, target: HElement) {
     this._areas.push(new SelectArea(`selector-area col-header`, true).rect(rect).target(target));
-    return this;
-  }
-
-  addFocusArea(rect: Rect, target: HElement) {
-    this._focusAreas.push(new SelectArea(`selector-focus`, true).rect(rect).target(target));
     return this;
   }
 
@@ -159,6 +154,11 @@ export default class Selector {
         })
         .target(target)
     );
+    return this;
+  }
+
+  setFocusArea(rect: Rect, target: HElement) {
+    this._focusArea = new SelectArea('', true).rect(rect).target(target, false);
     return this;
   }
 
@@ -180,7 +180,7 @@ export default class Selector {
   }
 
   clear() {
-    [this._areas, this._focusAreas, this._copyAreas].forEach((it) => {
+    [this._areas, this._copyAreas].forEach((it) => {
       it.forEach((it1) => it1.clear());
       it.length = 0;
     });
@@ -215,10 +215,10 @@ function updateHeaderRanges(s: Selector) {
   for (let range of s._ranges) {
     if (range) {
       const { startRow, startCol, endRow, endCol } = range;
-      if (startRow > 0 || endRow > 0) {
+      if (startRow >= 0 || endRow >= 0) {
         rowHeaderRanges.push(Range.create(startRow, 0, endRow, 0));
       }
-      if (startCol > 0 || endCol > 0) {
+      if (startCol >= 0 || endCol >= 0) {
         colHeaderRanges.push(Range.create(0, startCol, 0, endCol));
       }
     }

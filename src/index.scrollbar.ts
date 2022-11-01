@@ -16,7 +16,6 @@ function init(t: Table) {
   });
 
   t._hScrollbar = new Scrollbar('horizontal', t._container).change((direction, value) => {
-    console.log('direction:', direction, value);
     if (scrollx(t._data, direction, value)) {
       t.render();
       selector.reset(t);
@@ -42,7 +41,7 @@ function auto(t: Table, range: Range) {
     const [, area2, , area4] = viewport.areas;
     const range4 = area4.range;
     const range2 = area2.range;
-    console.log('range:', range, ', range4:', range4, t._data.scroll);
+    // console.log('range:', range, ', range4:', range4, t._data.scroll);
     if (range.endRow >= range4.endRow) {
       // move down
       const start = range4.startRow;
@@ -55,7 +54,7 @@ function auto(t: Table, range: Range) {
       const start = range4.startCol;
       let offset = range.endCol - range4.endCol;
       if (offset <= 0) offset = 1;
-      console.log('start:', start, offset);
+      // console.log('start:', start, offset);
       _hScrollbar?.scrollBy(t.colsWidth(start, start + offset));
     }
     if (range.endRow < range4.startRow && range.startRow > range2.endRow) {
