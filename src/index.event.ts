@@ -1,8 +1,9 @@
-import Table from '.';
+import Table, { MoveDirection } from '.';
 import { Range } from 'table-renderer';
 import { DataCellValue } from './data';
 import selector from './index.selector';
 import editor from './index.editor';
+import scrollbar from './index.scrollbar';
 import { bind, unbind } from './event';
 
 export function initEvents(t: Table) {
@@ -38,6 +39,9 @@ function mousedownHandler(t: Table, evt: any) {
         cache = { row, col };
         _selector.placement(placement);
         selector.addRange(t, row, col, !(metaKey || ctrlKey));
+        if (placement === 'body') {
+          scrollbar.auto(t, _selector._ranges[0], 'right');
+        }
       }
       selector.reset(t);
 
@@ -50,11 +54,19 @@ function mousedownHandler(t: Table, evt: any) {
           if (placement === 'row-header') x1 = 1;
           if (placement === 'col-header') y1 = 1;
 
-          const c1 = viewport.cellAt(x1, y1);
+          const c1 = _renderer.viewport?.cellAt(x1, y1);
           if (c1) {
-            const { row, col } = c1;
+            let { row, col } = c1;
             if (row != cache.row || col !== cache.col) {
               selector.unionRange(t, row, col);
+              if (placement === 'body') {
+                let direction: MoveDirection | null = null;
+                if (row < cache.row) direction = 'up';
+                else if (row > cache.row) direction = 'down';
+                else if (col < cache.col) direction = 'left';
+                else if (col > cache.col) direction = 'right';
+                if (direction !== null) scrollbar.auto(t, _selector._ranges[0], direction);
+              }
               selector.reset(t);
               cache = { row, col };
             }
@@ -195,7 +207,7 @@ function keydownHandler(t: Table, evt: any) {
     selector.clearCopy(t);
   }
   if (direction) {
-    selector.move(t, direction, metaKey || ctrlKey ? undefined : 1);
+    selector.move(t, !(code.startsWith('Arrow') && shiftKey), direction, metaKey || ctrlKey ? undefined : 1);
     evt.preventDefault();
   }
 }

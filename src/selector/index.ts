@@ -73,6 +73,9 @@ export default class Selector {
   _focusRange: Range | null = null;
   _focusArea: SelectArea | null = null;
 
+  // for move
+  _move: [number, number] = [0, 0];
+
   _copyRange: Range | null | undefined = null;
   _copyAreas: SelectArea[] = [];
 
@@ -91,6 +94,7 @@ export default class Selector {
   focus(row: number, col: number, range: Range) {
     this._focus = [row, col];
     this._focusRange = range;
+    this._move = [row, col];
     return this;
   }
 

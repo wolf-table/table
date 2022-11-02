@@ -64,3 +64,15 @@ export function pt2px(pt: number): number {
   else if (pt <= 4.5) return 6;
   return (96 / 72) * pt;
 }
+
+export function throttle(fn: Function, delay: number) {
+  let timer: any = null;
+  return (...args: any) => {
+    if (!timer) {
+      timer = setTimeout(() => {
+        fn.apply(null, args);
+        timer = null;
+      }, delay || 0);
+    }
+  };
+}

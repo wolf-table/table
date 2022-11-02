@@ -1,4 +1,4 @@
-import Table from '.';
+import Table, { MoveDirection } from '.';
 import { borderWidth } from './config';
 import { expr2xy, Rect, Range, Area } from 'table-renderer';
 import { rangeUnoinMerges } from './data';
@@ -165,29 +165,33 @@ function reset(t: Table) {
   }
 }
 
-function move(t: Table, direction: 'up' | 'down' | 'left' | 'right', step?: number) {
-  const { _selector, _data, _vScrollbar, _hScrollbar } = t;
+function move(t: Table, reselect: boolean, direction: MoveDirection, step?: number) {
+  const { _selector, _data } = t;
   const { viewport } = t._renderer;
   if (_selector && viewport) {
     const { _focusRange } = _selector;
     if (_focusRange) {
-      const { startRow, startCol, endRow, endCol } = _focusRange;
+      let { startRow, startCol, endRow, endCol } = _focusRange;
       const { rows, cols } = _data;
 
-      let [r, c] = _selector._focus;
+      let [r, c] = _selector._move;
+      if (!reselect) {
+        startRow = endRow = r;
+        startCol = endCol = c;
+      }
 
       if (step) {
         const getShowRowIndex = (index: number, offset: number) => {
           for (;;) {
             const r = t.row(index);
-            if (r && r.hide) index += offset;
+            if (r.hide) index += offset;
             else return index;
           }
         };
         const getShowColIndex = (index: number, offset: number) => {
           for (;;) {
             const r = t.col(index);
-            if (r && r.hide) index += offset;
+            if (r.hide) index += offset;
             else return index;
           }
         };
@@ -213,47 +217,16 @@ function move(t: Table, direction: 'up' | 'down' | 'left' | 'right', step?: numb
         }
       }
       if (r >= 0 && r <= rows.len - 1 && c >= 0 && c <= cols.len - 1) {
-        addRange(t, r, c, true);
+        if (reselect) {
+          addRange(t, r, c, true);
+        } else {
+          unionRange(t, r, c);
+          _selector._move = [r, c];
+        }
       }
       _selector.placement('body');
-
-      // move to start or end
-      if (!step) {
-        if (direction === 'up') {
-          _vScrollbar?.scrollToStart();
-        } else if (direction === 'down') {
-          _vScrollbar?.scrollToEnd();
-        } else if (direction === 'left') {
-          _hScrollbar?.scrollToStart();
-        } else if (direction === 'right') {
-          _hScrollbar?.scrollToEnd();
-        }
-        reset(t);
-        return;
-      }
-
-      // it scroll to start when focus-range is before freeze and direction in (down | right)
-      if (_data.freeze && (direction === 'down' || direction === 'right')) {
-        const [fc1, fr1] = expr2xy(_data.freeze);
-        const [srows, scols] = _data.scroll;
-        if (startRow + 1 === fr1 && srows > 0) {
-          _vScrollbar?.scrollToStart();
-          reset(t);
-          return;
-        }
-        if (startCol + 1 === fc1 && scols > 0) {
-          _hScrollbar?.scrollToStart();
-          reset(t);
-          return;
-        }
-      }
-
-      // scroll by step
-      const fbr = _selector._focusRange;
-      if (fbr) {
-        scrollbar.auto(t, fbr);
-        reset(t);
-      }
+      scrollbar.auto(t, _selector._ranges[0], direction, step === undefined);
+      reset(t);
     }
   }
 }
