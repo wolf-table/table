@@ -44,3 +44,7 @@ export function rowsHeight(data: TableData, min?: number, max?: number) {
   }
   return sum(min !== undefined ? min : 0, max !== undefined ? max : rows.len, (i) => rowHeight(data, i));
 }
+
+export function isLastRow(data: TableData, index: number) {
+  return data.rows.len - 1 === index;
+}

@@ -42,6 +42,8 @@ import {
   DataCol,
   DataCellValue,
   cellValueString,
+  isLastRow,
+  isLastCol,
 } from './data';
 import resizer from './index.resizer';
 import scrollbar from './index.scrollbar';
@@ -274,6 +276,14 @@ export default class Table {
     return oldValue;
   }
 
+  rowsHeight(min: number, max: number) {
+    return rowsHeight(this._data, min, max);
+  }
+
+  isLastRow(index: number) {
+    return isLastRow(this._data, index);
+  }
+
   col(index: number): DataCol;
   col(index: number, value: Partial<DataCol>): Table;
   col(index: number, value?: Partial<DataCol>): any {
@@ -305,8 +315,8 @@ export default class Table {
     return colsWidth(this._data, min, max);
   }
 
-  rowsHeight(min: number, max: number) {
-    return rowsHeight(this._data, min, max);
+  isLastCol(index: number) {
+    return isLastCol(this._data, index);
   }
 
   formulaParser(v: FormulaParser) {

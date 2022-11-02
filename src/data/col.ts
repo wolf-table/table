@@ -44,3 +44,7 @@ export function colsWidth(data: TableData, min?: number, max?: number) {
   }
   return sum(min !== undefined ? min : 0, max !== undefined ? max : cols.len, (i) => colWidth(data, i));
 }
+
+export function isLastCol(data: TableData, index: number) {
+  return data.cols.len - 1 === index;
+}
