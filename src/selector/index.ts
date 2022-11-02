@@ -98,6 +98,11 @@ export default class Selector {
     return this;
   }
 
+  move(row: number, col: number) {
+    this._move = [row, col];
+    return this;
+  }
+
   addRange(range: Range, clear: boolean = true) {
     if (clear) {
       this._ranges.length = 0;

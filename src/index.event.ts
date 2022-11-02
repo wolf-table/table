@@ -47,6 +47,14 @@ function mousedownHandler(t: Table, evt: any) {
 
       if (placement !== 'all') {
         const { left, top } = t._canvas.rect();
+        let cachexy = [0, 0];
+        let timer: any = null;
+        const clearTimer = () => {
+          if (timer !== null) {
+            clearInterval(timer);
+            timer = null;
+          }
+        };
         const moveHandler = (e: any) => {
           let [x1, y1] = [0, 0];
           if (e.x > 0) x1 = e.x - left;
@@ -54,25 +62,52 @@ function mousedownHandler(t: Table, evt: any) {
           if (placement === 'row-header') x1 = 1;
           if (placement === 'col-header') y1 = 1;
 
-          const c1 = _renderer.viewport?.cellAt(x1, y1);
-          if (c1) {
-            let { row, col } = c1;
-            if (row != cache.row || col !== cache.col) {
-              selector.unionRange(t, row, col);
-              if (placement === 'body') {
-                let direction: MoveDirection | null = null;
-                if (row < cache.row) direction = 'up';
-                else if (row > cache.row) direction = 'down';
-                else if (col < cache.col) direction = 'left';
-                else if (col > cache.col) direction = 'right';
-                if (direction !== null) scrollbar.auto(t, _selector._ranges[0], direction);
+          const { target } = e;
+          if (target.tagName === 'CANVAS') {
+            const c1 = _renderer.viewport?.cellAt(x1, y1);
+            if (c1) {
+              let { row, col } = c1;
+              if (row != cache.row || col !== cache.col) {
+                selector.unionRange(t, row, col);
+                if (placement === 'body') {
+                  let direction: MoveDirection | null = null;
+                  if (row < cache.row) direction = 'up';
+                  else if (row > cache.row) direction = 'down';
+                  else if (col < cache.col) direction = 'left';
+                  else if (col > cache.col) direction = 'right';
+                  if (direction !== null) scrollbar.auto(t, _selector._ranges[0], direction);
+                }
+                selector.reset(t);
+                cache = { row, col };
               }
-              selector.reset(t);
-              cache = { row, col };
+            }
+            clearTimer();
+          } else {
+            if (timer === null) {
+              const deltax = e.x - cachexy[0];
+              const deltay = e.y - cachexy[1];
+              if (deltax >= 0 && deltay >= 0) {
+                timer = setInterval(() => {
+                  const { endRow, endCol } = _selector._ranges[0];
+                  if (deltax > deltay) {
+                    selector.move(t, false, 'right', 1);
+                    if (t.isLastRow(endRow)) {
+                      clearTimer();
+                    }
+                  } else {
+                    selector.move(t, false, 'down', 1);
+                    if (t.isLastCol(endCol)) {
+                      clearTimer();
+                    }
+                  }
+                }, 120);
+              }
             }
           }
+          cachexy = [e.x, e.y];
         };
         const upHandler = () => {
+          clearTimer();
           unbind(window, 'mousemove', moveHandler);
           unbind(window, 'mouseup', upHandler);
         };

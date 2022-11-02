@@ -25,19 +25,20 @@ function setCellValue(t: Table, value: string) {
   }
 }
 
-function addRange(t: Table, r: number, c: number, clear: boolean) {
+function addRange({ _selector, _data }: Table, r: number, c: number, clear: boolean) {
   const range = Range.create(r, c);
-  const mergedRange = rangeUnoinMerges(t._data, range);
-  const { _selector } = t;
+  const mergedRange = rangeUnoinMerges(_data, range);
   if (_selector) {
     _selector.focus(r, c, mergedRange).addRange(_selector._placement === 'body' ? mergedRange : range, clear);
   }
 }
 
-function unionRange(t: Table, r: number, c: number) {
-  t._selector?.updateLastRange((focusRange) => {
-    return rangeUnoinMerges(t._data, focusRange.union(Range.create(r, c)));
-  });
+function unionRange({ _selector, _data }: Table, r: number, c: number) {
+  if (_selector) {
+    _selector.move(r, c).updateLastRange((focusRange) => {
+      return rangeUnoinMerges(_data, focusRange.union(Range.create(r, c)));
+    });
+  }
 }
 
 function reset(t: Table) {
