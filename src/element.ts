@@ -23,7 +23,8 @@ export default class HElement {
   _data = new Map();
 
   constructor(tag: string | Node, className?: string | string[] | Object) {
-    this._ = tag instanceof Node ? <HTMLElement>tag : document.createElement(tag);
+    this._ =
+      tag instanceof Node ? <HTMLElement>tag : document.createElement(tag);
     if (className) {
       if (typeof className === 'string') {
         this._.className = className;
@@ -129,7 +130,12 @@ export default class HElement {
 
   offset() {
     const { _ } = this;
-    return { x: _.offsetLeft, y: _.offsetTop, width: _.offsetWidth, height: _.offsetHeight };
+    return {
+      x: _.offsetLeft,
+      y: _.offsetTop,
+      width: _.offsetWidth,
+      height: _.offsetHeight,
+    };
   }
 
   computedStyle() {
@@ -199,7 +205,10 @@ export default class HElement {
   }
 }
 
-export function h(tag: string | HTMLElement, className?: string | string[] | Object) {
+export function h(
+  tag: string | HTMLElement,
+  className?: string | string[] | Object
+) {
   return new HElement(tag, className);
 }
 

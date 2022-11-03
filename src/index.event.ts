@@ -75,7 +75,8 @@ function mousedownHandler(t: Table, evt: any) {
                   else if (row > cache.row) direction = 'down';
                   else if (col < cache.col) direction = 'left';
                   else if (col > cache.col) direction = 'right';
-                  if (direction !== null) scrollbar.auto(t, _selector._ranges[0], direction);
+                  if (direction !== null)
+                    scrollbar.auto(t, _selector._ranges[0], direction);
                 }
                 selector.reset(t);
                 cache = { row, col };
@@ -209,7 +210,10 @@ function keydownHandler(t: Table, evt: any) {
         selector.showCopy(t);
         ['text/plain', 'text/html'].forEach((type) => {
           const from = range.toString();
-          const text = type === 'text/html' ? t.toHtml(from) : toClipboardTextFrom(t, from);
+          const text =
+            type === 'text/html'
+              ? t.toHtml(from)
+              : toClipboardTextFrom(t, from);
           items[type] = new Blob([text], { type });
         });
         navigator.clipboard.write([new ClipboardItem(items)]).then(
@@ -242,7 +246,12 @@ function keydownHandler(t: Table, evt: any) {
     selector.clearCopy(t);
   }
   if (direction) {
-    selector.move(t, !(code.startsWith('Arrow') && shiftKey), direction, metaKey || ctrlKey ? undefined : 1);
+    selector.move(
+      t,
+      !(code.startsWith('Arrow') && shiftKey),
+      direction,
+      metaKey || ctrlKey ? undefined : 1
+    );
     evt.preventDefault();
   }
 }
@@ -300,7 +309,11 @@ function toArraysFromClipboardText(text: string) {
   return arrays;
 }
 
-function getClipboardText(item: ClipboardItem, type: string, cb = (text: string) => {}) {
+function getClipboardText(
+  item: ClipboardItem,
+  type: string,
+  cb = (text: string) => {}
+) {
   if (item.types.includes(type)) {
     item.getType(type).then((blob) => {
       blob.text().then((text) => {

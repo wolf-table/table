@@ -13,7 +13,12 @@ export default class Overlayer {
 
   constructor(target: HElement) {
     this._areas = [hOverlayer(), hOverlayer(), hOverlayer(), hOverlayer()];
-    this._headerAreas = [hOverlayer(), hOverlayer(), hOverlayer(), hOverlayer()];
+    this._headerAreas = [
+      hOverlayer(),
+      hOverlayer(),
+      hOverlayer(),
+      hOverlayer(),
+    ];
     target.append(...this._areas, ...this._headerAreas);
   }
 

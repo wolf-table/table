@@ -138,7 +138,10 @@ export default class Table {
     const container: HTMLElement | null =
       typeof element === 'string' ? document.querySelector(element) : element;
     if (container === null) throw new Error('first argument error');
-    this._container = h(container, `${stylePrefix}-container`).css({ height: height(), width: width() });
+    this._container = h(container, `${stylePrefix}-container`).css({
+      height: height(),
+      width: width(),
+    });
     this._data = defaultData();
 
     // update default data
@@ -215,7 +218,9 @@ export default class Table {
     else {
       const { _selector } = this;
       if (_selector) {
-        return _selector._ranges.every((it) => isMerged(this._data, it.toString()));
+        return _selector._ranges.every((it) =>
+          isMerged(this._data, it.toString())
+        );
       }
     }
     return false;

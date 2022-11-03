@@ -127,7 +127,9 @@ function resizeSize(editor: Editor) {
   _textMeasure.html(measureHtml);
 
   if (_rect && _target) {
-    const padding = parseInt(_textMeasure.computedStyle().getPropertyValue('padding'));
+    const padding = parseInt(
+      _textMeasure.computedStyle().getPropertyValue('padding')
+    );
     const toffset = _target.offset();
     const maxWidth = toffset.width - _rect.x - borderWidth;
     const maxHeight = toffset.height - _rect.y - borderWidth;

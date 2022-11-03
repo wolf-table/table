@@ -1,7 +1,9 @@
 import { stylePrefix } from '../config';
 import HElement, { h } from '../element';
 
-export type ScrollbarChanger = ((direction: '+' | '-', value: number, event: Event) => void) | null;
+export type ScrollbarChanger =
+  | ((direction: '+' | '-', value: number, event: Event) => void)
+  | null;
 
 const typeCssKeys = { vertical: 'height', horizontal: 'width' };
 

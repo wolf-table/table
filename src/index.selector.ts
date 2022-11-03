@@ -25,11 +25,18 @@ function setCellValue(t: Table, value: string) {
   }
 }
 
-function addRange({ _selector, _data }: Table, r: number, c: number, clear: boolean) {
+function addRange(
+  { _selector, _data }: Table,
+  r: number,
+  c: number,
+  clear: boolean
+) {
   const range = Range.create(r, c);
   const mergedRange = rangeUnoinMerges(_data, range);
   if (_selector) {
-    _selector.focus(r, c, mergedRange).addRange(_selector._placement === 'body' ? mergedRange : range, clear);
+    _selector
+      .focus(r, c, mergedRange)
+      .addRange(_selector._placement === 'body' ? mergedRange : range, clear);
   }
 }
 
@@ -146,7 +153,10 @@ function reset(t: Table) {
         } else {
           _selector._colHeaderRanges.forEach((it) => {
             if (area.range.intersectsCol(it.startCol, it.endCol)) {
-              _selector.addColHeaderArea(area.rectCol(it.startCol, it.endCol), target);
+              _selector.addColHeaderArea(
+                area.rectCol(it.startCol, it.endCol),
+                target
+              );
             }
           });
         }
@@ -157,7 +167,10 @@ function reset(t: Table) {
         } else {
           _selector._rowHeaderRanges.forEach((it) => {
             if (area.range.intersectsRow(it.startRow, it.endRow)) {
-              _selector.addRowHeaderArea(area.rectRow(it.startRow, it.endRow), target);
+              _selector.addRowHeaderArea(
+                area.rectRow(it.startRow, it.endRow),
+                target
+              );
             }
           });
         }
@@ -166,7 +179,12 @@ function reset(t: Table) {
   }
 }
 
-function move(t: Table, reselect: boolean, direction: MoveDirection, step?: number) {
+function move(
+  t: Table,
+  reselect: boolean,
+  direction: MoveDirection,
+  step?: number
+) {
   const { _selector, _data } = t;
   const { viewport } = t._renderer;
   if (_selector && viewport) {

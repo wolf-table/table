@@ -15,7 +15,11 @@ export function addStyle(t: TableData, value: Partial<Style>): number {
   return t.styles.push(value) - 1;
 }
 
-export function getStyle(t: TableData, index: number, withDefault: boolean = true): Partial<Style> {
+export function getStyle(
+  t: TableData,
+  index: number,
+  withDefault: boolean = true
+): Partial<Style> {
   const style = t.styles[index];
   if (withDefault) {
     return Object.assign({}, t.style, t.styles[index] || {});

@@ -48,8 +48,16 @@ function scrollTo(
 }
 
 export function scrollx(data: TableData): number;
-export function scrollx(data: TableData, direction: '+' | '-', n: number): boolean;
-export function scrollx(data: TableData, direction?: '+' | '-', n?: number): any {
+export function scrollx(
+  data: TableData,
+  direction: '+' | '-',
+  n: number
+): boolean;
+export function scrollx(
+  data: TableData,
+  direction?: '+' | '-',
+  n?: number
+): any {
   if (direction && n !== undefined) {
     return scrollTo(data, direction, n, 'col', (i) => col(data, i).width);
   }
@@ -57,7 +65,11 @@ export function scrollx(data: TableData, direction?: '+' | '-', n?: number): any
 }
 
 export function scrolly(data: TableData): number;
-export function scrolly(data: TableData, direction: '+' | '-', n: number): boolean;
+export function scrolly(
+  data: TableData,
+  direction: '+' | '-',
+  n: number
+): boolean;
 export function scrolly(data: TableData, direction?: '+' | '-', n?: number) {
   if (direction && n !== undefined) {
     return scrollTo(data, direction, n, 'row', (i) => row(data, i).height);

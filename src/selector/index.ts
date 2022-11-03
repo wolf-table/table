@@ -80,7 +80,7 @@ export default class Selector {
   _copyAreas: SelectArea[] = [];
 
   _autofillRange: Range | null = null;
-  _autofillArea: SelectArea = new SelectArea('selector-autofill');
+  _autofillAreas: SelectArea[] = [];
 
   constructor(editable: boolean) {
     this._editable = editable;
@@ -103,6 +103,11 @@ export default class Selector {
     return this;
   }
 
+  autofillRange(range: Range) {
+    this._autofillRange = range;
+    return this;
+  }
+
   addRange(range: Range, clear: boolean = true) {
     if (clear) {
       this._ranges.length = 0;
@@ -122,14 +127,8 @@ export default class Selector {
   }
 
   addAreaOutline(rect: Rect, target: HElement) {
-    const { x, y, width, height } = rect;
     const outline = new SelectArea(`selector`, true)
-      .rect({
-        x: x - borderWidth / 2,
-        y: y - borderWidth / 2,
-        width: width - borderWidth,
-        height: height - borderWidth,
-      })
+      .rect(rect2outlineRect(rect, borderWidth))
       .target(target);
     if (this._placement === 'body') {
       outline.append(h('div', 'corner'));
@@ -138,30 +137,38 @@ export default class Selector {
   }
 
   addArea(rect: Rect, target: HElement) {
-    this._areas.push(new SelectArea(`selector-area`, true).rect(rect).target(target));
+    this._areas.push(
+      new SelectArea(`selector-area`, true).rect(rect).target(target)
+    );
     return this;
   }
 
   addRowHeaderArea(rect: Rect, target: HElement) {
-    this._areas.push(new SelectArea(`selector-area row-header`, true).rect(rect).target(target));
+    this._areas.push(
+      new SelectArea(`selector-area row-header`, true).rect(rect).target(target)
+    );
     return this;
   }
 
   addColHeaderArea(rect: Rect, target: HElement) {
-    this._areas.push(new SelectArea(`selector-area col-header`, true).rect(rect).target(target));
+    this._areas.push(
+      new SelectArea(`selector-area col-header`, true).rect(rect).target(target)
+    );
     return this;
   }
 
-  addCopyArea({ x, y, width, height }: Rect, target: HElement) {
+  addCopyArea(rect: Rect, target: HElement) {
     this._copyAreas.push(
       new SelectArea(`selector-copy`, true)
-        .rect({
-          x: x - borderWidth / 2,
-          y: y - borderWidth / 2,
-          width: width - borderWidth,
-          height: height - borderWidth,
-        })
+        .rect(rect2outlineRect(rect, borderWidth))
         .target(target)
+    );
+    return this;
+  }
+
+  addAutofillArea(rect: Rect, target: HElement) {
+    this._autofillAreas.push(
+      new SelectArea(`selector-autofill`, true).rect(rect).target(target)
     );
     return this;
   }
@@ -181,11 +188,6 @@ export default class Selector {
       it.clear();
     });
     this._copyAreas.length = 0;
-  }
-
-  setAuotfillArea(rect: Rect, target: HElement) {
-    this._autofillArea.rect(rect).target(target);
-    return this;
   }
 
   clear() {
@@ -243,4 +245,13 @@ function updateHeaderRanges(s: Selector) {
     (a, b) => a.startCol - b.startCol,
     (a, b) => a.intersectsCol(b.startCol, b.endCol)
   );
+}
+
+function rect2outlineRect(rect: Rect, borderWidth: number) {
+  return {
+    x: rect.x - borderWidth / 2,
+    y: rect.y - borderWidth / 2,
+    width: rect.width - borderWidth,
+    height: rect.height - borderWidth,
+  };
 }

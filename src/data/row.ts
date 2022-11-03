@@ -2,8 +2,16 @@ import { DataRow, TableData } from '.';
 import { sum } from '../helper';
 
 export function row(data: TableData, index: number): DataRow;
-export function row(data: TableData, index: number, value: Partial<DataRow>): DataRow;
-export function row(data: TableData, index: number, value?: Partial<DataRow>): DataRow {
+export function row(
+  data: TableData,
+  index: number,
+  value: Partial<DataRow>
+): DataRow;
+export function row(
+  data: TableData,
+  index: number,
+  value?: Partial<DataRow>
+): DataRow {
   const oldValue = data.rows[index] || { height: data.rowHeight };
   if (value) {
     return (data.rows[index] = Object.assign(oldValue, value));
@@ -42,7 +50,11 @@ export function rowsHeight(data: TableData, min?: number, max?: number) {
     }
     return total;
   }
-  return sum(min !== undefined ? min : 0, max !== undefined ? max : rows.len, (i) => rowHeight(data, i));
+  return sum(
+    min !== undefined ? min : 0,
+    max !== undefined ? max : rows.len,
+    (i) => rowHeight(data, i)
+  );
 }
 
 export function isLastRow(data: TableData, index: number) {

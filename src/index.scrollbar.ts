@@ -7,21 +7,25 @@ import { Range } from 'table-renderer';
 
 function init(t: Table) {
   // scrollbar
-  t._vScrollbar = new Scrollbar('vertical', t._container).change((direction, value) => {
-    if (scrolly(t._data, direction, value)) {
-      t.render();
-      selector.reset(t);
-      editor.move(t);
+  t._vScrollbar = new Scrollbar('vertical', t._container).change(
+    (direction, value) => {
+      if (scrolly(t._data, direction, value)) {
+        t.render();
+        selector.reset(t);
+        editor.move(t);
+      }
     }
-  });
+  );
 
-  t._hScrollbar = new Scrollbar('horizontal', t._container).change((direction, value) => {
-    if (scrollx(t._data, direction, value)) {
-      t.render();
-      selector.reset(t);
-      editor.move(t);
+  t._hScrollbar = new Scrollbar('horizontal', t._container).change(
+    (direction, value) => {
+      if (scrollx(t._data, direction, value)) {
+        t.render();
+        selector.reset(t);
+        editor.move(t);
+      }
     }
-  });
+  );
 }
 
 function resize(t: Table) {
@@ -44,7 +48,10 @@ function auto(t: Table, range: Range, direction: MoveDirection, toEnd = false) {
     if (_vScrollbar) {
       if (direction === 'up') {
         // move up
-        if (range.startRow <= range4.startRow && range.startRow > range2.endRow) {
+        if (
+          range.startRow <= range4.startRow &&
+          range.startRow > range2.endRow
+        ) {
           _vScrollbar.scrollBy(-t.rowsHeight(range.startRow, range4.startRow));
         } else if (toEnd) {
           _vScrollbar.scrollToStart();
@@ -66,7 +73,10 @@ function auto(t: Table, range: Range, direction: MoveDirection, toEnd = false) {
     if (_hScrollbar) {
       if (direction === 'left') {
         // move left
-        if (range.startCol <= range4.startCol && range.startCol > range2.endCol) {
+        if (
+          range.startCol <= range4.startCol &&
+          range.startCol > range2.endCol
+        ) {
           _hScrollbar.scrollBy(-t.colsWidth(range.startCol, range4.startCol));
         } else if (toEnd) {
           _hScrollbar.scrollToStart();

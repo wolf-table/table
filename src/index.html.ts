@@ -23,7 +23,9 @@ export function toHtml(t: Table, from: string) {
   const fromRange = Range.with(from);
 
   // merges
-  const merges = t._data.merges.map((it) => Range.with(it)).filter((it) => it.intersects(fromRange));
+  const merges = t._data.merges
+    .map((it) => Range.with(it))
+    .filter((it) => it.intersects(fromRange));
 
   // borders
   // const borders = t._data.borders.filter((it) => Range.with(it[0]).intersects(fromRange));
@@ -31,7 +33,9 @@ export function toHtml(t: Table, from: string) {
     if (lineStyle === 'dashed' || lineStyle === 'dotted') {
       return `1px ${lineStyle} ${color}`;
     } else {
-      return `${lineStyle === 'thick' ? 3 : lineStyle === 'medium' ? 2 : 1}px solid ${color}`;
+      return `${
+        lineStyle === 'thick' ? 3 : lineStyle === 'medium' ? 2 : 1
+      }px solid ${color}`;
     }
   };
   const cellIndexes = new Map();
@@ -66,7 +70,10 @@ export function toHtml(t: Table, from: string) {
           if (r >= startRow && r < endRow) borderNames.push('border-bottom');
         }
         if (borderNames.length > 0) {
-          cellIndexes.set(`${r}_${c}`, borderNames.map((it) => `${it}:${borderValue};`).join(''));
+          cellIndexes.set(
+            `${r}_${c}`,
+            borderNames.map((it) => `${it}:${borderValue};`).join('')
+          );
         }
       });
     }
@@ -180,24 +187,69 @@ export function fromHtml(
 
         // style
         const nstyle: Partial<Style> = {};
-        elementStylePropValue(td, 'background-color', '', (v) => (nstyle.bgcolor = v));
-        elementStylePropValue(td, 'color', dstyle.color, (v) => (nstyle.color = v));
-        elementStylePropValue(td, 'text-align', dstyle.align, (v) => (nstyle.align = v as Align));
+        elementStylePropValue(
+          td,
+          'background-color',
+          '',
+          (v) => (nstyle.bgcolor = v)
+        );
+        elementStylePropValue(
+          td,
+          'color',
+          dstyle.color,
+          (v) => (nstyle.color = v)
+        );
+        elementStylePropValue(
+          td,
+          'text-align',
+          dstyle.align,
+          (v) => (nstyle.align = v as Align)
+        );
         elementStylePropValue(
           td,
           'vertical-align',
           dstyle.valign,
           (v) => (nstyle.valign = v as VerticalAlign)
         );
-        elementStyleBooleanValue(td, 'white-space', 'normal', (v) => (nstyle.textwrap = true));
-        elementStyleBooleanValue(td, 'text-decoration', 'underline', (v) => (nstyle.underline = true));
-        elementStyleBooleanValue(td, 'text-decoration', 'line-through', (v) => (nstyle.strikethrough = true));
-        elementStyleBooleanValue(td, 'font-style', 'italic', (v) => (nstyle.italic = true));
+        elementStyleBooleanValue(
+          td,
+          'white-space',
+          'normal',
+          (v) => (nstyle.textwrap = true)
+        );
+        elementStyleBooleanValue(
+          td,
+          'text-decoration',
+          'underline',
+          (v) => (nstyle.underline = true)
+        );
+        elementStyleBooleanValue(
+          td,
+          'text-decoration',
+          'line-through',
+          (v) => (nstyle.strikethrough = true)
+        );
+        elementStyleBooleanValue(
+          td,
+          'font-style',
+          'italic',
+          (v) => (nstyle.italic = true)
+        );
         elementStylePropValue(td, 'font-weight', 'normal', (v) => {
           if (v === 'bold' || parseInt(v) >= 700) nstyle.bold = true;
         });
-        elementStylePropValue(td, 'font-family', dstyle.fontFamily, (v) => (nstyle.fontFamily = v));
-        elementStylePropValue(td, 'font-size', dstyle.fontSize, (v) => (nstyle.fontSize = parseInt(v)));
+        elementStylePropValue(
+          td,
+          'font-family',
+          dstyle.fontFamily,
+          (v) => (nstyle.fontFamily = v)
+        );
+        elementStylePropValue(
+          td,
+          'font-size',
+          dstyle.fontSize,
+          (v) => (nstyle.fontSize = parseInt(v))
+        );
 
         // border
         // const border: Border = [];
@@ -221,9 +273,15 @@ export function fromHtml(
         let borderxs: string[] = [];
         let curBorder: Border | null = null;
         // let border: Border | undefined = undefined;
-        elementStylePropValue(td, 'border-width', '', (it) => borderxs.push(it));
-        elementStylePropValue(td, 'border-style', '', (it) => borderxs.push(it));
-        elementStylePropValue(td, 'border-color', '', (it) => borderxs.push(it));
+        elementStylePropValue(td, 'border-width', '', (it) =>
+          borderxs.push(it)
+        );
+        elementStylePropValue(td, 'border-style', '', (it) =>
+          borderxs.push(it)
+        );
+        elementStylePropValue(td, 'border-color', '', (it) =>
+          borderxs.push(it)
+        );
         if (borderxs.length >= 3) {
           curBorder = [ref, 'all', ...css2border(borderxs.join(' '))];
           // t.addBorder(ref, 'all', ...css2border(borderxs.join(' ')));
@@ -320,7 +378,11 @@ export function fromHtml(
   return toEnd;
 }
 
-function elementAttrValue(el: HTMLElement, attrName: string, cb: (v: string) => void) {
+function elementAttrValue(
+  el: HTMLElement,
+  attrName: string,
+  cb: (v: string) => void
+) {
   if (el.hasAttribute(attrName)) {
     const value = el.getAttribute(attrName);
     if (value != null) cb(value);

@@ -2,8 +2,16 @@ import { DataCol, TableData } from '.';
 import { sum } from '../helper';
 
 export function col(data: TableData, index: number): DataCol;
-export function col(data: TableData, index: number, value: Partial<DataCol>): DataCol;
-export function col(data: TableData, index: number, value?: Partial<DataCol>): any {
+export function col(
+  data: TableData,
+  index: number,
+  value: Partial<DataCol>
+): DataCol;
+export function col(
+  data: TableData,
+  index: number,
+  value?: Partial<DataCol>
+): any {
   const oldValue = data.cols[index] || { width: data.colWidth };
   if (value) {
     return (data.cols[index] = Object.assign(oldValue, value));
@@ -42,7 +50,11 @@ export function colsWidth(data: TableData, min?: number, max?: number) {
     }
     return total;
   }
-  return sum(min !== undefined ? min : 0, max !== undefined ? max : cols.len, (i) => colWidth(data, i));
+  return sum(
+    min !== undefined ? min : 0,
+    max !== undefined ? max : cols.len,
+    (i) => colWidth(data, i)
+  );
 }
 
 export function isLastCol(data: TableData, index: number) {
