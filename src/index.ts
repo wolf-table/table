@@ -44,6 +44,7 @@ import {
   cellValueString,
   isLastRow,
   isLastCol,
+  copy,
 } from './data';
 import resizer from './index.resizer';
 import scrollbar from './index.scrollbar';
@@ -52,6 +53,7 @@ import selector from './index.selector';
 import { initEvents } from './index.event';
 import { fromHtml, toHtml } from './index.html';
 import { getStyle } from './data/style';
+import { CopyData } from './data/copy';
 
 export type TableRendererOptions = {
   style?: Partial<Style>;
@@ -430,6 +432,36 @@ export default class Table {
     } else {
       return this._data;
     }
+  }
+
+  /**
+   * copy data to ...
+   * @param to
+   * @param autofill
+   */
+  copy(to: string | Range | Table | null, autofill = false) {
+    if (!to) return this;
+    const copyData = (t: Table): CopyData | null => {
+      const { _selector } = t;
+      if (!_selector) return null;
+      const range = _selector.currentRange;
+      if (range === undefined) return null;
+      return {
+        range,
+        cells: t._cells,
+        data: t._data,
+      };
+    };
+    copy(
+      copyData(this),
+      typeof to === 'string'
+        ? Range.with(to)
+        : to instanceof Range
+        ? to
+        : copyData(to),
+      autofill
+    );
+    return this;
   }
 
   /**
