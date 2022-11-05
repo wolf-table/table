@@ -7,6 +7,7 @@ import { addStyle, clearStyles } from './style';
 import { addBorder, clearBorder, clearBorders } from './border';
 import { col, colWidth, colsWidth, isLastCol } from './col';
 import { row, rowHeight, rowsHeight, isLastRow } from './row';
+import { copy } from './copy';
 
 export type DataRow = Row;
 export type DataRows = {
@@ -95,4 +96,5 @@ export {
   Cells,
   cellValue,
   cellValueString,
+  copy,
 };
