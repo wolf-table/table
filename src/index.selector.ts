@@ -1,12 +1,30 @@
 import Table, { MoveDirection } from '.';
 import { borderWidth } from './config';
-import { expr2xy, Rect, Range, Area } from 'table-renderer';
+import { Rect, Range, Area } from 'table-renderer';
 import { rangeUnoinMerges } from './data';
 import Selector from './selector';
 import scrollbar from './index.scrollbar';
+import { bindMousemoveAndMouseup } from './event';
 
 function init(t: Table) {
-  t._selector = new Selector(!!t._editable);
+  t._selector = new Selector(!!t._editable).autofillTrigger((evt) => {
+    console.log('mouse-down', evt.x, evt.y, evt);
+    const { _selector } = t;
+    if (_selector) {
+      bindMousemove(
+        t,
+        (row, col) => {
+          const { currentRange } = _selector;
+          if (currentRange) {
+          }
+        },
+        (s) => s._autofillRange,
+        (s) => {
+          t.copy(s._autofillRange, true);
+        }
+      );
+    }
+  });
 }
 
 function setCellValue(t: Table, value: string) {
@@ -199,6 +217,8 @@ function move(
         startCol = endCol = c;
       }
 
+      const oldCurrentRange = _selector.currentRange?.clone();
+
       if (step) {
         const getShowRowIndex = (index: number, offset: number) => {
           for (;;) {
@@ -244,9 +264,93 @@ function move(
         }
       }
       _selector.placement('body');
-      scrollbar.auto(t, _selector._ranges[0], direction, step === undefined);
+      scrollbar.autoMove(
+        t,
+        _selector.currentRange,
+        reselect ? undefined : oldCurrentRange
+      );
       reset(t);
     }
+  }
+}
+
+// bind mouse select
+function bindMousemove(
+  t: Table,
+  moveChange: (row: number, col: number) => void,
+  changedRange: (s: Selector) => Range | null | undefined,
+  upAfter = (s: Selector) => {}
+) {
+  const { _selector, _renderer } = t;
+  if (!_selector) return;
+  const { _placement } = _selector;
+  const cache = { row: 0, col: 0 };
+  if (_placement !== 'all') {
+    const { left, top } = t._canvas.rect();
+    let cachexy = [0, 0];
+    let timer: any = null;
+    const clearTimer = () => {
+      if (timer !== null) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+    const moveHandler = (e: any) => {
+      let [x1, y1] = [0, 0];
+      if (e.x > 0) x1 = e.x - left;
+      if (e.y > 0) y1 = e.y - top;
+      if (_placement === 'row-header') x1 = 1;
+      if (_placement === 'col-header') y1 = 1;
+
+      const oldCurrentRange = _selector.currentRange?.clone();
+
+      const { target } = e;
+      if (target.tagName === 'CANVAS') {
+        const c1 = _renderer.viewport?.cellAt(x1, y1);
+        if (c1) {
+          let { row, col } = c1;
+          if (row != cache.row || col !== cache.col) {
+            moveChange(row, col);
+            if (_placement === 'body') {
+              scrollbar.autoMove(t, changedRange(_selector), oldCurrentRange);
+            }
+            reset(t);
+            cache.row = row;
+            cache.col = col;
+          }
+        }
+        clearTimer();
+      } else {
+        if (timer === null) {
+          const deltax = e.x - cachexy[0];
+          const deltay = e.y - cachexy[1];
+          if (deltax >= 0 && deltay >= 0) {
+            timer = setInterval(() => {
+              const cRange = changedRange(_selector);
+              if (cRange) {
+                const { endRow, endCol } = cRange;
+                if (deltax > deltay) {
+                  move(t, false, 'right', 1);
+                  if (t.isLastRow(endRow)) {
+                    clearTimer();
+                  }
+                } else {
+                  move(t, false, 'down', 1);
+                  if (t.isLastCol(endCol)) {
+                    clearTimer();
+                  }
+                }
+              }
+            }, 120);
+          }
+        }
+      }
+      cachexy = [e.x, e.y];
+    };
+    bindMousemoveAndMouseup(window, moveHandler, () => {
+      clearTimer();
+      upAfter(_selector);
+    });
   }
 }
 
@@ -271,6 +375,7 @@ export default {
   unionRange,
   reset,
   move,
+  bindMousemove,
   showCopy,
   clearCopy,
 };

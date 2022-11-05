@@ -81,9 +81,14 @@ export default class Selector {
 
   _autofillRange: Range | null = null;
   _autofillAreas: SelectArea[] = [];
+  _autofillTrigger = (evt: any) => {};
 
   constructor(editable: boolean) {
     this._editable = editable;
+  }
+
+  get currentRange() {
+    return this._ranges.at(-1);
   }
 
   placement(value: Placement) {
@@ -105,6 +110,11 @@ export default class Selector {
 
   autofillRange(range: Range) {
     this._autofillRange = range;
+    return this;
+  }
+
+  autofillTrigger(trigger: (evt: any) => void) {
+    this._autofillTrigger = trigger;
     return this;
   }
 
@@ -131,7 +141,7 @@ export default class Selector {
       .rect(rect2outlineRect(rect, borderWidth))
       .target(target);
     if (this._placement === 'body') {
-      outline.append(h('div', 'corner'));
+      outline.append(h('div', 'corner').on('mousedown', this._autofillTrigger));
     }
     this._areas.push(outline);
   }
@@ -179,7 +189,7 @@ export default class Selector {
   }
 
   showCopy() {
-    this._copyRange = this._ranges.at(-1);
+    this._copyRange = this.currentRange;
   }
 
   clearCopy() {

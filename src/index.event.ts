@@ -4,7 +4,6 @@ import { DataCellValue } from './data';
 import selector from './index.selector';
 import editor from './index.editor';
 import scrollbar from './index.scrollbar';
-import { bind, unbind } from './event';
 
 export function initEvents(t: Table) {
   const { _canvas } = t;
@@ -26,7 +25,6 @@ function mousedownHandler(t: Table, evt: any) {
   if (_editor) {
     _editor.finished();
   }
-
   let cache = { row: 0, col: 0 };
   if (_selector && viewport) {
     const { offsetX, offsetY, ctrlKey, metaKey, shiftKey } = evt;
@@ -40,81 +38,18 @@ function mousedownHandler(t: Table, evt: any) {
         _selector.placement(placement);
         selector.addRange(t, row, col, !(metaKey || ctrlKey));
         if (placement === 'body') {
-          scrollbar.auto(t, _selector._ranges[0], 'right');
+          scrollbar.autoMove(t, _selector.currentRange);
         }
       }
       selector.reset(t);
 
-      if (placement !== 'all') {
-        const { left, top } = t._canvas.rect();
-        let cachexy = [0, 0];
-        let timer: any = null;
-        const clearTimer = () => {
-          if (timer !== null) {
-            clearInterval(timer);
-            timer = null;
-          }
-        };
-        const moveHandler = (e: any) => {
-          let [x1, y1] = [0, 0];
-          if (e.x > 0) x1 = e.x - left;
-          if (e.y > 0) y1 = e.y - top;
-          if (placement === 'row-header') x1 = 1;
-          if (placement === 'col-header') y1 = 1;
-
-          const { target } = e;
-          if (target.tagName === 'CANVAS') {
-            const c1 = _renderer.viewport?.cellAt(x1, y1);
-            if (c1) {
-              let { row, col } = c1;
-              if (row != cache.row || col !== cache.col) {
-                selector.unionRange(t, row, col);
-                if (placement === 'body') {
-                  let direction: MoveDirection | null = null;
-                  if (row < cache.row) direction = 'up';
-                  else if (row > cache.row) direction = 'down';
-                  else if (col < cache.col) direction = 'left';
-                  else if (col > cache.col) direction = 'right';
-                  if (direction !== null)
-                    scrollbar.auto(t, _selector._ranges[0], direction);
-                }
-                selector.reset(t);
-                cache = { row, col };
-              }
-            }
-            clearTimer();
-          } else {
-            if (timer === null) {
-              const deltax = e.x - cachexy[0];
-              const deltay = e.y - cachexy[1];
-              if (deltax >= 0 && deltay >= 0) {
-                timer = setInterval(() => {
-                  const { endRow, endCol } = _selector._ranges[0];
-                  if (deltax > deltay) {
-                    selector.move(t, false, 'right', 1);
-                    if (t.isLastRow(endRow)) {
-                      clearTimer();
-                    }
-                  } else {
-                    selector.move(t, false, 'down', 1);
-                    if (t.isLastCol(endCol)) {
-                      clearTimer();
-                    }
-                  }
-                }, 120);
-              }
-            }
-          }
-          cachexy = [e.x, e.y];
-        };
-        const upHandler = () => {
-          clearTimer();
-          unbind(window, 'mousemove', moveHandler);
-          unbind(window, 'mouseup', upHandler);
-        };
-        bind(window, 'mousemove', moveHandler);
-        bind(window, 'mouseup', upHandler);
-      }
+      selector.bindMousemove(
+        t,
+        (row, col) => {
+          selector.unionRange(t, row, col);
+        },
+        (s) => s.currentRange
+      );
     }
   }
 }
@@ -205,7 +140,7 @@ function keydownHandler(t: Table, evt: any) {
     const { _selector } = t;
     if (t._copyable && _selector) {
       const items: any = {};
-      const range = _selector._ranges[0];
+      const range = _selector.currentRange;
       if (range) {
         selector.showCopy(t);
         ['text/plain', 'text/html'].forEach((type) => {

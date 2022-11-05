@@ -38,7 +38,19 @@ function resize(t: Table) {
   }
 }
 
-function auto(t: Table, range: Range, direction: MoveDirection, toEnd = false) {
+/**
+ *
+ * @param t
+ * @param range current selected area
+ * @param oldRange it's needed when the selected area get bigger or smaller (click-mousemove and shift-(Arrow*)-keyborard)
+ * @returns
+ */
+function autoMove(
+  t: Table,
+  range: Range | null | undefined,
+  oldRange?: Range | null
+) {
+  if (!range) return;
   const { _selector, _vScrollbar, _hScrollbar, _data } = t;
   const { viewport } = t._renderer;
   if (viewport && _selector) {
@@ -46,52 +58,210 @@ function auto(t: Table, range: Range, direction: MoveDirection, toEnd = false) {
     const range4 = area4.range;
     const range2 = area2.range;
     if (_vScrollbar) {
+      const totalHeight = (start: number, maxStart: number, maxEnd: number) => {
+        const max = t.rowsHeight(maxStart, maxEnd + 1);
+        let value = 0;
+        for (let i = start; value < max; i += 1) {
+          value += t.rowHeight(i);
+        }
+        return value;
+      };
+      if (oldRange) {
+        // move by step
+        if (range.endRow === oldRange.endRow) {
+          // up
+          if (range.startRow < oldRange.startRow) {
+            // up+
+            if (
+              range.startRow > range2.endRow &&
+              range.startRow < range4.startRow
+            ) {
+              _vScrollbar.scrollBy(
+                -t.rowsHeight(range.startRow, range4.startRow)
+              );
+            }
+          } else if (range.startRow > oldRange.startRow) {
+            // up-
+            if (range.startRow >= range4.endRow) {
+              _vScrollbar.scrollBy(
+                totalHeight(range4.startRow, range4.endRow, range.startRow)
+              );
+            }
+          }
+        } else if (range.startRow === oldRange.startRow) {
+          // down
+          if (range.endRow > oldRange.endRow) {
+            // down+
+            if (range.endRow >= range4.endRow) {
+              _vScrollbar.scrollBy(
+                totalHeight(range4.startRow, range4.endRow, range.endRow)
+              );
+            }
+          } else if (range.endRow < oldRange.endRow) {
+            // down-
+            if (range.endRow < range4.startRow) {
+              _vScrollbar.scrollBy(
+                -t.rowsHeight(range.endRow, range4.startRow)
+              );
+            }
+          }
+        }
+      } else {
+        // to-end
+        if (range.endRow === _data.rows.len - 1) {
+          _vScrollbar.scrollToEnd();
+        } else if (range.startRow === 0) {
+          _vScrollbar.scrollToStart();
+        } else if (range.endRow >= range4.endRow) {
+          _vScrollbar.scrollBy(
+            totalHeight(range4.startRow, range4.endRow, range.endRow)
+          );
+        } else if (
+          range.startRow > range2.endRow &&
+          range.startRow < range4.startRow
+        ) {
+          _vScrollbar.scrollBy(-t.rowsHeight(range.startRow, range4.startRow));
+        }
+      }
+    }
+    if (_hScrollbar) {
+      const totalWidth = (start: number, maxStart: number, maxEnd: number) => {
+        const max = t.colsWidth(maxStart, maxEnd + 1);
+        let value = 0;
+        for (let i = start; value < max; i += 1) {
+          value += t.colWidth(i);
+        }
+        return value;
+      };
+      if (oldRange) {
+        // to-end
+        // move by step
+        if (range.endCol === oldRange.endCol) {
+          // left
+          if (range.startCol < oldRange.startCol) {
+            // left+
+            if (
+              range.startCol > range2.endCol &&
+              range.startCol < range4.startCol
+            ) {
+              _hScrollbar.scrollBy(
+                -t.colsWidth(range.startCol, range4.startCol)
+              );
+            }
+          } else if (range.startCol > oldRange.startCol) {
+            // left-
+            if (range.startCol >= range4.endCol) {
+              _hScrollbar.scrollBy(
+                totalWidth(range4.startCol, range4.endCol, range.startCol)
+              );
+            }
+          }
+        } else if (range.startCol === oldRange.startCol) {
+          // right
+          if (range.endCol > oldRange.endCol) {
+            // right+
+            if (range.endCol >= range4.endCol) {
+              _hScrollbar.scrollBy(
+                totalWidth(range4.startCol, range4.endCol, range.endCol)
+              );
+            }
+          } else if (range.endCol < oldRange.endCol) {
+            // right-
+            if (range.endCol < range4.startCol) {
+              _hScrollbar.scrollBy(-t.colsWidth(range.endCol, range4.startCol));
+            }
+          }
+        }
+      } else {
+        if (range.endCol === _data.cols.len - 1) {
+          _hScrollbar.scrollToEnd();
+        } else if (range.startCol === 0) {
+          _hScrollbar.scrollToStart();
+        } else if (range.endCol >= range4.endCol) {
+          _hScrollbar.scrollBy(
+            totalWidth(range4.startCol, range4.endCol, range.endCol)
+          );
+        } else if (
+          range.startCol > range2.endCol &&
+          range.startCol < range4.startCol
+        ) {
+          _hScrollbar.scrollBy(-t.colsWidth(range.startCol, range4.startCol));
+        }
+      }
+    }
+  }
+}
+
+function auto(
+  t: Table,
+  range: Range | null | undefined,
+  direction: MoveDirection,
+  toEnd = false
+) {
+  if (!range) return;
+  const { _selector, _vScrollbar, _hScrollbar } = t;
+  const { viewport } = t._renderer;
+  if (viewport && _selector) {
+    const [, area2, , area4] = viewport.areas;
+    const range4 = area4.range;
+    const range2 = area2.range;
+    console.log(
+      direction,
+      'range:',
+      range,
+      ', range4:',
+      range4,
+      ', range2:',
+      range2
+    );
+    if (_vScrollbar) {
       if (direction === 'up') {
         // move up
-        if (
+        if (toEnd) {
+          _vScrollbar.scrollToStart();
+        } else if (
           range.startRow <= range4.startRow &&
           range.startRow > range2.endRow
         ) {
           _vScrollbar.scrollBy(-t.rowsHeight(range.startRow, range4.startRow));
-        } else if (toEnd) {
-          _vScrollbar.scrollToStart();
         }
       } else if (direction === 'down') {
         // move down
         if (toEnd) {
           _vScrollbar.scrollToEnd();
+        } else if (range.endRow === range2.endRow + 1) {
+          _vScrollbar.scrollToStart();
         } else if (range.endRow >= range4.endRow) {
           const start = range4.startRow;
           let offset = range.endRow - range4.endRow;
           if (offset <= 0) offset = 1;
           _vScrollbar.scrollBy(t.rowsHeight(start, start + offset));
-        } else if (range.endRow === range2.endRow + 1) {
-          _vScrollbar.scrollToStart();
         }
       }
     }
     if (_hScrollbar) {
       if (direction === 'left') {
         // move left
-        if (
+        if (toEnd) {
+          _hScrollbar.scrollToStart();
+        } else if (
           range.startCol <= range4.startCol &&
           range.startCol > range2.endCol
         ) {
           _hScrollbar.scrollBy(-t.colsWidth(range.startCol, range4.startCol));
-        } else if (toEnd) {
-          _hScrollbar.scrollToStart();
         }
       } else if (direction === 'right') {
         // move right
         if (toEnd) {
           _hScrollbar.scrollToEnd();
+        } else if (range.endCol === range2.endCol + 1) {
+          _hScrollbar.scrollToStart();
         } else if (range.endCol >= range4.endCol) {
+          // buging
           const start = range4.startCol;
           let offset = range.endCol - range4.endCol;
           if (offset <= 0) offset = 1;
           _hScrollbar.scrollBy(t.colsWidth(start, start + offset));
-        } else if (range.endCol === range2.endCol + 1) {
-          _hScrollbar.scrollToStart();
         }
       }
     }
@@ -101,5 +271,5 @@ function auto(t: Table, range: Range, direction: MoveDirection, toEnd = false) {
 export default {
   init,
   resize,
-  auto,
+  autoMove,
 };
