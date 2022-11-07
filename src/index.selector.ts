@@ -1,14 +1,13 @@
 import Table, { MoveDirection } from '.';
 import { borderWidth } from './config';
 import { Rect, Range, Area } from 'table-renderer';
-import { rangeUnoinMerges } from './data';
+import { rangeUnoinMerges, stepColIndex, stepRowIndex } from './data';
 import Selector from './selector';
 import scrollbar from './index.scrollbar';
 import { bindMousemoveAndMouseup } from './event';
 
 function init(t: Table) {
   t._selector = new Selector(!!t._editable).autofillTrigger((evt) => {
-    console.log('mouse-down', evt.x, evt.y, evt);
     const { _selector } = t;
     if (_selector) {
       bindMousemove(
@@ -16,11 +15,39 @@ function init(t: Table) {
         (row, col) => {
           const { currentRange } = _selector;
           if (currentRange) {
+            const nRange = currentRange.clone();
+            if (!nRange.contains(row, col)) {
+              const d = [
+                nRange.startRow - row,
+                row - nRange.endRow,
+                nRange.startCol - col,
+                col - nRange.endCol,
+              ];
+              const index = d.indexOf(Math.max.apply(null, d));
+              if (index === 1) {
+                nRange.startRow = nRange.endRow + 1;
+                nRange.endRow = row;
+              } else if (index === 0) {
+                nRange.endRow = nRange.startRow - 1;
+                nRange.startRow = row;
+              } else if (index === 3) {
+                nRange.startCol = nRange.endCol + 1;
+                nRange.endCol = col;
+              } else if (index === 2) {
+                nRange.endCol = nRange.startCol - 1;
+                nRange.startCol = col;
+              }
+              _selector.autofillRange(nRange);
+            } else {
+              _selector.autofillRange(null);
+            }
           }
         },
         (s) => s._autofillRange,
         (s) => {
-          t.copy(s._autofillRange, true);
+          t.copy(s._autofillRange, true).render();
+          _selector.autofillRange(null);
+          reset(t);
         }
       );
     }
@@ -122,7 +149,7 @@ function reset(t: Table) {
 
     viewport.areas.forEach((area, index) => {
       const target = _overlayer._areas[index];
-      const { _ranges, _focusRange, _copyRange } = _selector;
+      const { _ranges, _focusRange, _copyRange, _autofillRange } = _selector;
       _ranges.forEach((it, i) => {
         let intersects = getIntersects(area, it);
         let rect = getRect(area, it, index);
@@ -156,6 +183,11 @@ function reset(t: Table) {
       if (_copyRange) {
         if (area.range.intersects(_copyRange)) {
           _selector.addCopyArea(area.rect(_copyRange), target);
+        }
+      }
+      if (_autofillRange) {
+        if (area.range.intersects(_autofillRange)) {
+          _selector.addAutofillArea(area.rect(_autofillRange), target);
         }
       }
     });
@@ -197,12 +229,35 @@ function reset(t: Table) {
   }
 }
 
+function moveAutofill(t: Table, direction: MoveDirection) {
+  const { _selector, _data } = t;
+  if (_selector) {
+    const range = _selector._autofillRange;
+    if (range) {
+      if (direction === 'up') {
+        range.startRow = stepRowIndex(_data, range.startRow - 1, -1);
+      } else if (direction === 'down') {
+        range.endRow = stepRowIndex(_data, range.endRow + 1, 1);
+      } else if (direction === 'left') {
+        range.startCol = stepColIndex(_data, range.startCol - 1, -1);
+      } else if (direction === 'right') {
+        range.endCol = stepColIndex(_data, range.endCol + 1, 1);
+      }
+      scrollbar.autoMove(t, range);
+      reset(t);
+      return true;
+    }
+  }
+  return false;
+}
+
 function move(
   t: Table,
   reselect: boolean,
   direction: MoveDirection,
   step?: number
 ) {
+  if (moveAutofill(t, direction)) return;
   const { _selector, _data } = t;
   const { viewport } = t._renderer;
   if (_selector && viewport) {
@@ -220,29 +275,14 @@ function move(
       const oldCurrentRange = _selector.currentRange?.clone();
 
       if (step) {
-        const getShowRowIndex = (index: number, offset: number) => {
-          for (;;) {
-            const r = t.row(index);
-            if (r.hide) index += offset;
-            else return index;
-          }
-        };
-        const getShowColIndex = (index: number, offset: number) => {
-          for (;;) {
-            const r = t.col(index);
-            if (r.hide) index += offset;
-            else return index;
-          }
-        };
-
         if (direction === 'up') {
-          r = getShowRowIndex(startRow - step, -1);
+          r = stepRowIndex(_data, startRow - step, -1);
         } else if (direction === 'down') {
-          r = getShowRowIndex(endRow + step, 1);
+          r = stepRowIndex(_data, endRow + step, 1);
         } else if (direction === 'left') {
-          c = getShowColIndex(startCol - step, -1);
+          c = stepColIndex(_data, startCol - step, -1);
         } else if (direction === 'right') {
-          c = getShowColIndex(endCol + step, 1);
+          c = stepColIndex(_data, endCol + step, 1);
         }
       } else {
         if (direction === 'up') {

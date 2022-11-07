@@ -108,7 +108,7 @@ export default class Selector {
     return this;
   }
 
-  autofillRange(range: Range) {
+  autofillRange(range: Range | null) {
     this._autofillRange = range;
     return this;
   }
@@ -141,7 +141,11 @@ export default class Selector {
       .rect(rect2outlineRect(rect, borderWidth))
       .target(target);
     if (this._placement === 'body') {
-      outline.append(h('div', 'corner').on('mousedown', this._autofillTrigger));
+      outline.append(
+        h('div', 'corner')
+          .attr('draggable', 'false')
+          .on('mousedown', this._autofillTrigger)
+      );
     }
     this._areas.push(outline);
   }
@@ -178,7 +182,9 @@ export default class Selector {
 
   addAutofillArea(rect: Rect, target: HElement) {
     this._autofillAreas.push(
-      new SelectArea(`selector-autofill`, true).rect(rect).target(target)
+      new SelectArea(`selector-autofill`, true)
+        .rect(rect2outlineRect(rect, borderWidth))
+        .target(target)
     );
     return this;
   }
@@ -201,7 +207,7 @@ export default class Selector {
   }
 
   clear() {
-    [this._areas, this._copyAreas].forEach((it) => {
+    [this._areas, this._autofillAreas, this._copyAreas].forEach((it) => {
       it.forEach((it1) => it1.clear());
       it.length = 0;
     });
