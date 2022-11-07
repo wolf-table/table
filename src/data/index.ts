@@ -5,8 +5,8 @@ import { scrollx, scrolly, scrollResetRows, scrollResetCols } from './scroll';
 import { isMerged, merge, unmerge, rangeUnoinMerges } from './merge';
 import { addStyle, clearStyles } from './style';
 import { addBorder, clearBorder, clearBorders } from './border';
-import { col, colWidth, colsWidth, isLastCol } from './col';
-import { row, rowHeight, rowsHeight, isLastRow } from './row';
+import { col, colWidth, colsWidth, isLastCol, stepColIndex } from './col';
+import { row, rowHeight, rowsHeight, isLastRow, stepRowIndex } from './row';
 import { copy } from './copy';
 
 export type DataRow = Row;
@@ -85,10 +85,12 @@ export {
   colWidth,
   colsWidth,
   isLastCol,
+  stepColIndex,
   row,
   rowHeight,
   rowsHeight,
   isLastRow,
+  stepRowIndex,
   scrollx,
   scrolly,
   scrollResetRows,

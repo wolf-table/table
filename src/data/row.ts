@@ -60,3 +60,11 @@ export function rowsHeight(data: TableData, min?: number, max?: number) {
 export function isLastRow(data: TableData, index: number) {
   return data.rows.len - 1 === index;
 }
+
+export function stepRowIndex(data: TableData, index: number, step: number) {
+  for (;;) {
+    const r = row(data, index);
+    if (r.hide) index += step;
+    else return index;
+  }
+}

@@ -24,8 +24,8 @@ export function copy(
   }
 
   tor.each((r, c) => {
-    const ri = tor.endRow - r;
-    const ci = tor.endCol - c;
+    const ri = r - tor.startRow;
+    const ci = c - tor.startCol;
 
     const fromRow = fromr.startRow + (ri % (fromr.rows + 1));
     const fromCol = fromr.startCol + (ci % (fromr.cols + 1));
@@ -38,6 +38,17 @@ export function copy(
     ) {
       let cell = indexCell[2];
       if (autofill) {
+        const getCellValue = (v: string | number) => {
+          if (typeof v === 'string') {
+            return v.replace(/([0-9]+$)|(([0-9]+)[^0-9]+$)/g, (word) => {
+              return word.replace(
+                /[0-9]+/,
+                (w) => `${parseInt(w) + ri + ci + 1}`
+              );
+            });
+          }
+          return v + ri + ci + 1;
+        };
         if (cell instanceof Object) {
           // clone cell to new cell
           // update new-cell
@@ -62,17 +73,25 @@ export function copy(
                 else if (position === 'down') n[1] = ri + 1;
                 else if (position === 'left') n[0] = -(ci + 1);
                 else if (position === 'right') n[0] = ci + 1;
-                return expr2expr(word, ...n);
+                return expr2expr(word, n[0], n[1]);
               }
             );
+          } else if (cell.value) {
+            cell.value = getCellValue(cell.value);
           }
+        } else {
+          cell = getCellValue(cell);
+        }
+        /*
         } else if (typeof cell === 'string') {
-          cell = cell.replace(/([0-9]+$)|(([0-9]+)[^0-9]+$)/g, (word) => {
-            return word.replace(/[0-9]+/, (w) => `${parseInt(w) + 1}`);
-          });
+          cell = getCellValue(cell);
+          // cell.replace(/([0-9]+$)|(([0-9]+)[^0-9]+$)/g, (word) => {
+            // return word.replace(/[0-9]+/, (w) => `${parseInt(w) + 1}`);
+          // });
         } else if (typeof cell === 'number') {
           cell += 1;
         }
+        */
       }
       to.cells.set(r, c, cell);
     } else {

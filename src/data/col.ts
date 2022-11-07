@@ -60,3 +60,11 @@ export function colsWidth(data: TableData, min?: number, max?: number) {
 export function isLastCol(data: TableData, index: number) {
   return data.cols.len - 1 === index;
 }
+
+export function stepColIndex(data: TableData, index: number, step: number) {
+  for (;;) {
+    const r = col(data, index);
+    if (r.hide) index += step;
+    else return index;
+  }
+}
