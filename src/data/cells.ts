@@ -119,7 +119,7 @@ export default class Cells {
   private resetFormulas() {
     this._formulas.forEach((index) => {
       const [, , cell] = this._[index];
-      if (cell instanceof Object) {
+      if (cell instanceof Object && cell.formula) {
         cell.value = this._formulaParser(cell.formula);
       }
     });
