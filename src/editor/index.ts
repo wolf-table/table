@@ -1,6 +1,6 @@
 import HElement, { h } from '../element';
 import { borderWidth, stylePrefix } from '../config';
-import { Rect } from 'table-renderer';
+import { Rect } from '@wolf-table/table-renderer';
 
 type MoveDirection = 'up' | 'down' | 'left' | 'right' | 'none';
 type InputChanger = (value: string) => void;

@@ -1,4 +1,4 @@
-import { Range, Rect } from 'table-renderer';
+import { Range, Rect } from '@wolf-table/table-renderer';
 import { stylePrefix, borderWidth } from '../config';
 import HElement, { h } from '../element';
 

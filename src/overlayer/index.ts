@@ -1,4 +1,4 @@
-import { Rect } from 'table-renderer';
+import { Rect } from '@wolf-table/table-renderer';
 import { stylePrefix } from '../config';
 import HElement, { h } from '../element';
 

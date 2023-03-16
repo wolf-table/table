@@ -1,4 +1,4 @@
-import { Range } from 'table-renderer';
+import { Range } from '@wolf-table/table-renderer';
 import { TableData } from '.';
 
 // can be merged

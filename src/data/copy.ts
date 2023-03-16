@@ -1,4 +1,4 @@
-import { Range, expr2expr } from 'table-renderer';
+import { Range, expr2expr } from '@wolf-table/table-renderer';
 import {
   Cells,
   TableData,

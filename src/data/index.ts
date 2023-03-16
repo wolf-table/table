@@ -1,4 +1,4 @@
-import { Cell, Style, Border, Row, Col } from 'table-renderer';
+import { Cell, Style, Border, Row, Col } from '@wolf-table/table-renderer';
 import Cells, { cellValue, cellValueString } from './cells';
 import { scrollx, scrolly, scrollResetRows, scrollResetCols } from './scroll';
 

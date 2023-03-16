@@ -16,7 +16,7 @@ import TableRenderer, {
   Formatter,
   expr2xy,
   Gridline,
-} from 'table-renderer';
+} from '@wolf-table/table-renderer';
 import {
   defaultData,
   TableData,

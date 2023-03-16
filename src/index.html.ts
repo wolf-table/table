@@ -8,7 +8,7 @@ import {
   VerticalAlign,
   xy2expr,
   Range,
-} from 'table-renderer';
+} from '@wolf-table/table-renderer';
 import Table from '.';
 import { pt2px } from './helper';
 

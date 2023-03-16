@@ -3,7 +3,7 @@ import Scrollbar from './scrollbar';
 import { scrollx, scrolly } from './data';
 import selector from './index.selector';
 import editor from './index.editor';
-import { Range } from 'table-renderer';
+import { Range } from '@wolf-table/table-renderer';
 
 function init(t: Table) {
   // scrollbar

@@ -1,4 +1,4 @@
-import { AreaCell } from 'table-renderer';
+import { AreaCell } from '@wolf-table/table-renderer';
 import { stylePrefix } from '../config';
 import HElement, { h } from '../element';
 import { bind, unbind } from '../event';
