@@ -1,8 +1,9 @@
 {
-  "name": "table",
-  "version": "1.0.0",
-  "description": "a web canvas table",
+  "name": "@wolf-table/table",
+  "version": "0.0.1",
+  "description": "a web-based(canvas) javascript table",
   "main": "dist/table.min.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "dev": "./node_modules/.bin/webpack serve --config build/webpack.dev.js",
     "build": "./node_modules/.bin/webpack --config build/webpack.prod.js && ./node_modules/.bin/tsc",
@@ -11,20 +12,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wolf-js/table.git"
+    "url": "https://github.com/wolf-table/table.git"
   },
   "keywords": [
     "web",
     "table",
-    "render",
     "grid"
   ],
   "author": "myliang",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/wolf-js/table/issues"
+    "url": "https://github.com/wolf-table/table/issues"
   },
-  "homepage": "https://github.com/wolf-js/table#readme",
+  "homepage": "https://github.com/wolf-table/table#readme",
   "devDependencies": {
     "@babel/core": "^7.17.5",
     "@babel/preset-env": "^7.16.11",
@@ -48,6 +48,6 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "table-renderer": "file:../table-renderer"
+    "@wolf-table/table-renderer": "^0.0.1"
   }
 }
