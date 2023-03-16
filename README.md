@@ -4,7 +4,7 @@
   </a>
 </p>
 <p align="center">
-  <img src="https://img.shields.io/github/actions/workflow/status/wolf-table/table-render/npm-publish-github-packages.yml" alt="GitHub Workflow Status">
+  <img src="https://img.shields.io/github/actions/workflow/status/wolf-table/table/npm-publish-github-packages.yml" alt="GitHub Workflow Status">
   <a href="https://www.npmjs.org/package/@wolf-table/table"><img src="https://img.shields.io/npm/v/@wolf-table/table.svg" alt="npm package"></a>
   <img src="https://img.shields.io/github/downloads/wolf-table/table/total" alt="GitHub all releases">
   <img src="https://img.shields.io/github/license/wolf-table/table" alt="GitHub">
