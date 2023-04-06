@@ -441,24 +441,24 @@ export default class Table {
    */
   copy(to: string | Range | Table | null, autofill = false) {
     if (!to) return this;
-    const copyData = (t: Table): CopyData | null => {
-      const { _selector } = t;
-      if (!_selector) return null;
-      const range = _selector.currentRange;
-      if (range === undefined) return null;
+    const toCopyData = (range: string | Range, t: Table) => {
       return {
-        range,
+        range: typeof range === 'string' ? Range.with(range) : range,
         cells: t._cells,
         data: t._data,
       };
     };
+    const toCopyData1 = (t: Table): CopyData | null => {
+      const { _selector } = t;
+      if (!_selector) return null;
+      const range = _selector.currentRange;
+      if (range === undefined) return null;
+      return toCopyData(range, t);
+    };
+
     copy(
-      copyData(this),
-      typeof to === 'string'
-        ? Range.with(to)
-        : to instanceof Range
-        ? to
-        : copyData(to),
+      toCopyData1(this),
+      to instanceof Table ? toCopyData1(to) : toCopyData(to, this),
       autofill
     );
     return this;
