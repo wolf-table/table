@@ -14,6 +14,10 @@
 ## wolf-table
 > A web-based(canvas) JavaScript Table
 
+## Demo
+<a href="https://stackblitz.com/edit/wolf-table-lts2dq?file=index.ts">Open in Stackblitz</a>
+<a href="https://wolf-table-lts2dq.stackblitz.io">Preview in browser</a>
+
 ## NPM
 npm install
 ```shell
@@ -21,6 +25,7 @@ npm install @wolf-table/table@0.0.1
 ```
 ## Usage
 ```javascript
+import '@wolf-table/table/dist/table.min.css';
 import Table from "@wolf-table/table";
 
 const t = Table.create(
