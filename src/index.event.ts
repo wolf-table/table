@@ -96,7 +96,7 @@ function wheelHandler(t: Table, evt: any) {
 
 function keydownHandler(t: Table, evt: any) {
   const { ctrlKey, shiftKey, metaKey, altKey, code } = evt;
-  console.log('code:', code, evt);
+  // console.log('code:', code, evt);
   let direction = null;
   if (code === 'Enter' && !ctrlKey && !metaKey && !altKey) {
     if (shiftKey) {
@@ -252,7 +252,7 @@ function getClipboardText(
   if (item.types.includes(type)) {
     item.getType(type).then((blob) => {
       blob.text().then((text) => {
-        console.log(`[${type}]: ${text}`);
+        // console.log(`[${type}]: ${text}`);
         cb(text);
       });
     });
