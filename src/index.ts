@@ -16,6 +16,7 @@ import TableRenderer, {
   Formatter,
   expr2xy,
   Gridline,
+  ViewportCell,
 } from '@wolf-table/table-renderer';
 import {
   defaultData,
@@ -54,6 +55,7 @@ import { initEvents } from './index.event';
 import { fromHtml, toHtml } from './index.html';
 import { getStyle } from './data/style';
 import { CopyData } from './data/copy';
+import { EventEmitter } from './event';
 
 export type TableRendererOptions = {
   style?: Partial<Style>;
@@ -85,6 +87,8 @@ export type TableOptions = {
 };
 
 export type MoveDirection = 'up' | 'down' | 'left' | 'right';
+
+export type EventName = 'click';
 
 export default class Table {
   // renderer options
@@ -128,6 +132,9 @@ export default class Table {
   _overlayer: Overlayer;
 
   _canvas: HElement;
+
+  // event emitter
+  _emitter = new EventEmitter();
 
   constructor(
     element: HTMLElement | string,
@@ -201,6 +208,10 @@ export default class Table {
 
   contentRect() {
     return this._contentRect;
+  }
+
+  container() {
+    return this._container;
   }
 
   resize() {
@@ -519,6 +530,11 @@ export default class Table {
       arrays.push(a);
     });
     return arrays;
+  }
+
+  onClick(handler: (cell: ViewportCell) => void) {
+    this._emitter.on('click', handler);
+    return this;
   }
 
   static create(

@@ -70,12 +70,8 @@ function setCellValue(t: Table, value: string) {
   }
 }
 
-function addRange(
-  { _selector, _data }: Table,
-  r: number,
-  c: number,
-  clear: boolean
-) {
+function addRange(t: Table, r: number, c: number, clear: boolean) {
+  const { _selector, _data } = t;
   const range = Range.create(r, c);
   const mergedRange = rangeUnoinMerges(_data, range);
   if (_selector) {
@@ -85,7 +81,8 @@ function addRange(
   }
 }
 
-function unionRange({ _selector, _data }: Table, r: number, c: number) {
+function unionRange(t: Table, r: number, c: number) {
+  const { _selector, _data } = t;
   if (_selector) {
     _selector.move(r, c).updateLastRange((focusRange) => {
       return rangeUnoinMerges(_data, focusRange.union(Range.create(r, c)));

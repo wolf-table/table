@@ -1,4 +1,4 @@
-import Table, { MoveDirection } from '.';
+import Table from '.';
 import { Range } from '@wolf-table/table-renderer';
 import { DataCellValue } from './data';
 import selector from './index.selector';
@@ -19,22 +19,23 @@ export function initEvents(t: Table) {
 
 function mousedownHandler(t: Table, evt: any) {
   // console.log('evt:', evt);
-  const { _selector, _renderer, _editor } = t;
+  const { _selector, _renderer, _editor, _emitter } = t;
   const { viewport } = _renderer;
 
   if (_editor) {
     _editor.finished();
   }
-  let cache = { row: 0, col: 0 };
+  // let cache = { row: 0, col: 0 };
   if (_selector && viewport) {
     const { offsetX, offsetY, ctrlKey, metaKey, shiftKey } = evt;
     const vcell = viewport.cellAt(offsetX, offsetY);
     if (vcell) {
+      _emitter.emit('click', vcell);
       const { placement, row, col } = vcell;
       if (shiftKey) {
         selector.unionRange(t, row, col);
       } else {
-        cache = { row, col };
+        // cache = { row, col };
         _selector.placement(placement);
         selector.addRange(t, row, col, !(metaKey || ctrlKey));
         if (placement === 'body') {

@@ -19,7 +19,14 @@ const t = WolfTable.create(
   .formulaParser((v) => `${v}-formula`)
   .data({
     styles: [
-      { bold: true, strikethrough: true, color: '#21ba45', italic: true, align: 'center', fontSize: 12 },
+      {
+        bold: true,
+        strikethrough: true,
+        color: '#21ba45',
+        italic: true,
+        align: 'center',
+        fontSize: 12,
+      },
     ],
     cells: [
       [0, 0, 'abc'],
@@ -27,6 +34,9 @@ const t = WolfTable.create(
       [2, 6, { value: 'formua', style: 0 }],
       [9, 5, { value: '', formula: '=sum(A1:A10)' }],
     ],
+  })
+  .onClick((cell) => {
+    console.log('cell:', cell);
   })
   .render();
 
