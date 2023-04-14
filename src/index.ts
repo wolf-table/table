@@ -49,7 +49,6 @@ import {
 } from './data';
 import resizer from './index.resizer';
 import scrollbar from './index.scrollbar';
-import editor from './index.editor';
 import selector from './index.selector';
 import { initEvents } from './index.event';
 import { fromHtml, toHtml } from './index.html';
@@ -125,8 +124,9 @@ export default class Table {
   _rowResizer: Resizer | null = null;
   _colResizer: Resizer | null = null;
 
-  // editor
+  // editor ? extends Editor
   _editor: Editor | null = null;
+  _editors = new Map();
 
   _selector: Selector | null = null;
   _overlayer: Overlayer;
@@ -198,7 +198,6 @@ export default class Table {
 
     if (options?.editable) {
       this._editable = true;
-      editor.init(this);
     }
 
     this._copyable = options?.copyable || false;
@@ -534,6 +533,16 @@ export default class Table {
 
   onClick(handler: (cell: ViewportCell) => void) {
     this._emitter.on('click', handler);
+    return this;
+  }
+
+  /**
+   * @param type keyof cell.type
+   * @param editor
+   * @returns
+   */
+  addEditor(type: string, editor: Editor) {
+    this._editors.set(type, editor);
     return this;
   }
 

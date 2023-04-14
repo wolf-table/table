@@ -23,8 +23,9 @@ function mousedownHandler(t: Table, evt: any) {
   const { viewport } = _renderer;
 
   if (_editor) {
-    _editor.finished();
+    _editor.changed();
   }
+
   // let cache = { row: 0, col: 0 };
   if (_selector && viewport) {
     const { offsetX, offsetY, ctrlKey, metaKey, shiftKey } = evt;

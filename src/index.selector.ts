@@ -1,7 +1,7 @@
 import Table, { MoveDirection } from '.';
 import { borderWidth } from './config';
 import { Rect, Range, Area } from '@wolf-table/table-renderer';
-import { rangeUnoinMerges, stepColIndex, stepRowIndex } from './data';
+import { DataCell, rangeUnoinMerges, stepColIndex, stepRowIndex } from './data';
 import Selector from './selector';
 import scrollbar from './index.scrollbar';
 import { bindMousemoveAndMouseup } from './event';
@@ -54,15 +54,16 @@ function init(t: Table) {
   });
 }
 
-function setCellValue(t: Table, value: string) {
+function setCellValue(t: Table, value: DataCell) {
   const { _selector } = t;
   if (_selector) {
     _selector.clearCopy();
     const { _ranges } = _selector;
+    // console.log('ranges:', _ranges, value);
     _ranges.forEach((it) => {
       if (it) {
         it.each((r, c) => {
-          t.cell(r, c, { value });
+          t.cell(r, c, value);
         });
       }
     });
