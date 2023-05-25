@@ -1,31 +1,30 @@
 import HElement from '../element';
-import { Rect } from 'table-renderer';
+import { Rect } from '@wolf-table/table-renderer';
+import { DataCell } from '../data';
 declare type MoveDirection = 'up' | 'down' | 'left' | 'right' | 'none';
-declare type InputChanger = (value: string) => void;
-declare type moveChanger = (direction: MoveDirection, value: string) => void;
+declare type MoveChanger = (direction: MoveDirection) => void;
+declare type Changer = (value: DataCell) => void;
+/**
+ * new -> cellIndex -> rect -> target -> hide
+ */
 export default class Editor {
     _: HElement;
-    _text: HElement;
-    _textMeasure: HElement;
+    _target: HElement | null;
     _rect: Rect | null;
-    _value: string;
-    _editing: boolean;
+    _value: DataCell;
     _visible: boolean;
-    _maxWidth: () => number;
-    _maxHeight: () => number;
-    _fontSize: string;
-    _fontFamily: string;
-    _inputChange: InputChanger;
-    _moveChange: moveChanger;
-    constructor(target: HElement, maxWidth: () => number, maxHeight: () => number, fontSize: string, fontFamily: string);
+    _moveChanger: MoveChanger;
+    _changer: Changer;
+    constructor(cssClass: String);
     get visible(): boolean;
-    target(target: HElement): Editor;
-    value(): string;
-    value(text: string): void;
-    finished(): void;
+    target(target: HElement): this;
+    cellIndex(r: number, c: number): this;
+    value(v: DataCell): this;
+    changed(): void;
     rect(rect: Rect | null): this;
-    hide(): void;
-    inputChange(value: InputChanger): void;
-    moveChange(value: moveChanger): void;
+    show(): this;
+    hide(): this;
+    moveChanger(value: MoveChanger): this;
+    changer(value: Changer): this;
 }
 export {};

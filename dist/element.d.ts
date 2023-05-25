@@ -30,6 +30,7 @@ export default class HElement {
         width: number;
         height: number;
     };
+    computedStyle(): CSSStyleDeclaration;
     show(flag?: boolean): this;
     hide(): this;
     scrollx(): number;

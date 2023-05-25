@@ -30,3 +30,4 @@ export declare function equals(obj1: any, obj2: any): boolean;
  * @param pt
  */
 export declare function pt2px(pt: number): number;
+export declare function throttle(fn: Function, delay: number): (...args: any) => void;

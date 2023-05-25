@@ -1,4 +1,4 @@
-import { Range } from 'table-renderer';
+import { Range } from '@wolf-table/table-renderer';
 import { TableData } from '.';
 export declare function isMerged({ merges }: TableData, ref: string): boolean;
 export declare function merge(data: TableData, ref: string): void;

@@ -5,8 +5,9 @@ import Resizer from './resizer';
 import Selector from './selector';
 import Overlayer from './overlayer';
 import Editor from './editor';
-import TableRenderer, { Style, ColHeader, RowHeader, Rect, Border, Formatter, Gridline } from 'table-renderer';
+import TableRenderer, { Style, ColHeader, RowHeader, Range, Rect, Border, Formatter, Gridline, ViewportCell } from '@wolf-table/table-renderer';
 import { TableData, Cells, FormulaParser, DataCell, DataRow, DataCol, DataCellValue } from './data';
+import { EventEmitter } from './event';
 export declare type TableRendererOptions = {
     style?: Partial<Style>;
     headerStyle?: Partial<Style>;
@@ -33,6 +34,8 @@ export declare type TableOptions = {
     data?: TableDataOptions;
     renderer?: TableRendererOptions;
 };
+export declare type MoveDirection = 'up' | 'down' | 'left' | 'right';
+export declare type EventName = 'click';
 export default class Table {
     _rendererOptions: TableRendererOptions;
     _copyable: boolean;
@@ -51,11 +54,14 @@ export default class Table {
     _rowResizer: Resizer | null;
     _colResizer: Resizer | null;
     _editor: Editor | null;
+    _editors: Map<any, any>;
     _selector: Selector | null;
     _overlayer: Overlayer;
     _canvas: HElement;
+    _emitter: EventEmitter;
     constructor(element: HTMLElement | string, width: () => number, height: () => number, options?: TableOptions);
     contentRect(): Rect;
+    container(): HElement;
     resize(): void;
     freeze(ref: string): this;
     isMerged(): boolean;
@@ -68,12 +74,14 @@ export default class Table {
     row(index: number, value: Partial<DataRow>): Table;
     rowHeight(index: number): number;
     rowHeight(index: number, value: number): Table;
+    rowsHeight(min: number, max: number): number;
+    isLastRow(index: number): boolean;
     col(index: number): DataCol;
     col(index: number, value: Partial<DataCol>): Table;
     colWidth(index: number): number;
     colWidth(index: number, value: number): Table;
     colsWidth(min: number, max: number): number;
-    rowsHeight(min: number, max: number): number;
+    isLastCol(index: number): boolean;
     formulaParser(v: FormulaParser): this;
     formatter(v: Formatter): this;
     style(index: number, withDefault?: boolean): Partial<Style>;
@@ -90,6 +98,12 @@ export default class Table {
     data(): TableData;
     data(data: Partial<TableData>): Table;
     /**
+     * copy data to ...
+     * @param to
+     * @param autofill
+     */
+    copy(to: string | Range | Table | null, autofill?: boolean): this;
+    /**
      * @param html <table><tr><td style="color: white">test</td></tr></table>
      * @param to A1 or B9
      */
@@ -102,6 +116,13 @@ export default class Table {
      */
     toHtml(from: string): string;
     toArrays(from: string): DataCellValue[][];
+    onClick(handler: (cell: ViewportCell) => void): this;
+    /**
+     * @param type keyof cell.type
+     * @param editor
+     * @returns
+     */
+    addEditor(type: string, editor: Editor): this;
     static create(element: HTMLElement | string, width: () => number, height: () => number, options?: TableOptions): Table;
 }
 declare global {

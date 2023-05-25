@@ -1,4 +1,4 @@
-import { Formatter } from 'table-renderer';
+import { Formatter } from '@wolf-table/table-renderer';
 import { IndexDataCell, DataCell, TableData, FormulaParser, DataCellValue } from '.';
 export default class Cells {
     _: IndexDataCell[];

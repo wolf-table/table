@@ -1,9 +1,9 @@
-import { Rect } from 'table-renderer';
+import { Rect } from '@wolf-table/table-renderer';
 import HElement from '../element';
 export default class Overlayer {
-    areas: HElement[];
-    headerAreas: HElement[];
-    areaRects: Rect[];
+    _areas: HElement[];
+    _headerAreas: HElement[];
+    _areaRects: Rect[];
     constructor(target: HElement);
     area(index: number): HElement;
     area(index: number, rect: Rect): Overlayer;

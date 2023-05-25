@@ -28,17 +28,17 @@ export default class Editor {
     return this._visible;
   }
 
-  target(target: HElement): Editor {
+  target(target: HElement) {
     target.append(this._);
     this._target = target;
     return this;
   }
 
-  cellIndex(r: number, c: number): Editor {
+  cellIndex(r: number, c: number) {
     return this;
   }
 
-  value(v: DataCell): Editor {
+  value(v: DataCell) {
     this._value = v;
     return this;
   }
@@ -63,10 +63,16 @@ export default class Editor {
     return this;
   }
 
+  show() {
+    this._.show();
+    return this;
+  }
+
   hide() {
     this._visible = false;
     this.value('');
     this._.hide();
+    return this;
   }
 
   moveChanger(value: MoveChanger) {

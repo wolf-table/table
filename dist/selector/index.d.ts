@@ -1,5 +1,4 @@
-import { Range, Rect } from 'table-renderer';
-import { TableData } from '../data';
+import { Range, Rect } from '@wolf-table/table-renderer';
 import HElement from '../element';
 declare class SelectArea {
     _: HElement;
@@ -7,15 +6,20 @@ declare class SelectArea {
     _target: HElement | null;
     constructor(classNameSuffix: string, show?: boolean);
     append(child: HElement): this;
+    offset(): {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    } | null;
     rect(value: Rect): this;
-    target(value: HElement): this;
+    target(value: HElement, autoAppend?: boolean): this;
     show(): this;
     clear(): void;
 }
 declare type Placement = 'all' | 'row-header' | 'col-header' | 'body';
 export default class Selector {
     _placement: Placement;
-    _data: TableData;
     _editable: boolean;
     _ranges: Range[];
     _rowHeaderRanges: Range[];
@@ -23,19 +27,29 @@ export default class Selector {
     _areas: SelectArea[];
     _focus: [number, number];
     _focusRange: Range | null;
-    _focusAreas: SelectArea[];
+    _focusArea: SelectArea | null;
+    _move: [number, number];
     _copyRange: Range | null | undefined;
     _copyAreas: SelectArea[];
-    constructor(data: TableData, editable: boolean);
+    _autofillRange: Range | null;
+    _autofillAreas: SelectArea[];
+    _autofillTrigger: (evt: any) => void;
+    constructor(editable: boolean);
+    get currentRange(): Range | undefined;
     placement(value: Placement): this;
-    addRange(r: number, c: number, clear?: boolean): this;
-    unionRange(r: number, c: number): this;
-    move(type: 'up' | 'down' | 'left' | 'right', step?: number): void;
-    addArea(index: number, rect: Rect, target: HElement): this;
+    focus(row: number, col: number, range: Range): this;
+    move(row: number, col: number): this;
+    autofillRange(range: Range | null): this;
+    autofillTrigger(trigger: (evt: any) => void): this;
+    addRange(range: Range, clear?: boolean): this;
+    updateLastRange(unionRange: (focusRange: Range) => Range): void;
+    addAreaOutline(rect: Rect, target: HElement): void;
+    addArea(rect: Rect, target: HElement): this;
     addRowHeaderArea(rect: Rect, target: HElement): this;
     addColHeaderArea(rect: Rect, target: HElement): this;
-    addFocusArea(rect: Rect, target: HElement): this;
-    addCopyArea({ x, y, width, height }: Rect, target: HElement): this;
+    addCopyArea(rect: Rect, target: HElement): this;
+    addAutofillArea(rect: Rect, target: HElement): this;
+    setFocusArea(rect: Rect, target: HElement): this;
     showCopy(): void;
     clearCopy(): void;
     clear(): void;

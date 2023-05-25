@@ -27,7 +27,7 @@ export default class TextEditor extends Editor {
       });
   }
 
-  value(v: DataCell): Editor {
+  value(v: DataCell) {
     super.value(v);
     this._text.value(cellValueString(v) || '');
     resizeSize(this);
@@ -54,6 +54,7 @@ export default class TextEditor extends Editor {
   hide() {
     super.hide();
     this._editing = false;
+    return this;
   }
 }
 

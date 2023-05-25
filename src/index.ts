@@ -55,6 +55,8 @@ import { fromHtml, toHtml } from './index.html';
 import { getStyle } from './data/style';
 import { CopyData } from './data/copy';
 import { EventEmitter } from './event';
+import TextEditor from './editor/text';
+import SelectEditor from './editor/select';
 
 export type TableRendererOptions = {
   style?: Partial<Style>;
@@ -201,6 +203,10 @@ export default class Table {
     }
 
     this._copyable = options?.copyable || false;
+
+    // set editors
+    this._editors.set('text', new TextEditor());
+    this._editors.set('select', new SelectEditor());
 
     initEvents(this);
   }

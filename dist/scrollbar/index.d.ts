@@ -11,7 +11,7 @@ export default class Scrollbar {
     constructor(type: 'vertical' | 'horizontal', target: HElement);
     get value(): number;
     change(value: ScrollbarChanger): this;
-    scrollBy(value: number, moveByCell?: boolean): Scrollbar;
+    scrollBy(value: number): Scrollbar;
     scrollToStart(): this;
     scrollToEnd(): this;
     scroll(): any;

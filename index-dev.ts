@@ -48,7 +48,16 @@ const si = t.addStyle({
   color: '#1b1c1d',
 });
 // set cell
-t.cell(2, 2, { value: 'set-value', style: si }).render();
+t.cell(2, 2, { value: 'set-value', style: si });
+t.cell(15, 7, {
+  type: 'select',
+  value: 'option',
+  options: async (q) =>
+    ['option1', 'option2', 'option3', 'option4', 'option5', 'option6'].filter(
+      (it) => it.startsWith(q)
+    ),
+});
+t.render();
 
 // get cell
 console.log('cell[2,2]:', t.cell(2, 2));
