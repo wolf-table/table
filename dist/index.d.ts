@@ -116,7 +116,7 @@ export default class Table {
      */
     toHtml(from: string): string;
     toArrays(from: string): DataCellValue[][];
-    onClick(handler: (cell: ViewportCell) => void): this;
+    onClick(handler: (cell: ViewportCell, evt: MouseEvent) => void): this;
     /**
      * @param type keyof cell.type
      * @param editor
