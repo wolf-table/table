@@ -35,8 +35,8 @@ const t = WolfTable.create(
       [9, 5, { value: '', formula: '=sum(A1:A10)' }],
     ],
   })
-  .onClick((cell) => {
-    console.log('cell:', cell);
+  .onClick((cell, evt) => {
+    // console.log('cell:', cell, evt);
   })
   .render();
 
@@ -50,7 +50,7 @@ const si = t.addStyle({
 // set cell
 t.cell(2, 2, { value: 'set-value', style: si });
 t.cell(15, 7, {
-  type: 'select',
+  type: 'text',
   value: 'option',
   options: async (q) =>
     ['option1', 'option2', 'option3', 'option4', 'option5', 'option6'].filter(

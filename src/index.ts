@@ -56,7 +56,6 @@ import { getStyle } from './data/style';
 import { CopyData } from './data/copy';
 import { EventEmitter } from './event';
 import TextEditor from './editor/text';
-import SelectEditor from './editor/select';
 
 export type TableRendererOptions = {
   style?: Partial<Style>;
@@ -206,7 +205,6 @@ export default class Table {
 
     // set editors
     this._editors.set('text', new TextEditor());
-    this._editors.set('select', new SelectEditor());
 
     initEvents(this);
   }
@@ -537,7 +535,7 @@ export default class Table {
     return arrays;
   }
 
-  onClick(handler: (cell: ViewportCell) => void) {
+  onClick(handler: (cell: ViewportCell, evt: MouseEvent) => void) {
     this._emitter.on('click', handler);
     return this;
   }

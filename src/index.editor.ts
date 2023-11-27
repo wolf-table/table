@@ -2,16 +2,12 @@ import Table from '.';
 import selector from './index.selector';
 import { DataCell } from './data';
 import Editor from './editor';
-import SelectEditor from './editor/select';
 
 function get(t: Table, cell: DataCell) {
   let type = 'text';
   if (cell instanceof Object && cell.type) type = cell.type;
   const { _editors } = t;
   const editor: Editor = _editors.get(type);
-  if (type === 'select' && cell instanceof Object && cell.options) {
-    (editor as SelectEditor).options(cell.options);
-  }
   editor.changer((value) => {
     if (value !== null) {
       selector.setCellValue(t, value);
@@ -28,15 +24,17 @@ function get(t: Table, cell: DataCell) {
 }
 
 function move(t: Table) {
-  const { _editor, _selector } = t;
+  const { _editor, _selector, _renderer } = t;
+  // console.log('_editor', _editor, _selector);
   if (_editor && _selector) {
-    const { _focusArea } = _selector;
+    const { _focusArea, _focus } = _selector;
     if (_editor.visible && _focusArea) {
       const { _rect, _target } = _focusArea;
-      if (_rect && _target) {
+      const { viewport } = _renderer;
+      if (_rect && _target && viewport && viewport.inAreas(..._focus)) {
         _editor.rect(_rect).target(_target).show();
       } else {
-        _editor.rect({ x: -100, y: -100, width: 0, height: 0 }).show();
+        _editor.rect({ x: -100, y: -100, width: 0, height: 0 }).hide();
       }
     }
   }
@@ -54,10 +52,10 @@ function reset(t: Table) {
       t._editor = editor;
       if (editor && _rect && _target) {
         // console.log('row:', startRow, ', col:', startCol, ', rect:', _rect);
-        editor.cellIndex(startRow, startCol).rect(_rect).target(_target).show();
         if (cell) {
           editor.value(cell);
         }
+        editor.cellIndex(startRow, startCol).rect(_rect).target(_target).show();
       }
     }
   }

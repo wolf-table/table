@@ -12,6 +12,7 @@ export function initEvents(t: Table) {
     .on('mousemove', (evt) => mousemoveHandler(t, evt))
     .on('keydown', (evt) => keydownHandler(t, evt))
     .on('wheel.prevent', (evt) => wheelHandler(t, evt))
+    .on('contextmenu.prevent', (evt) => {})
     .on('dblclick.prevent', () => {
       editor.reset(t);
     });
@@ -31,7 +32,7 @@ function mousedownHandler(t: Table, evt: any) {
     const { offsetX, offsetY, ctrlKey, metaKey, shiftKey } = evt;
     const vcell = viewport.cellAt(offsetX, offsetY);
     if (vcell) {
-      _emitter.emit('click', vcell);
+      _emitter.emit('click', vcell, evt);
       const { placement, row, col } = vcell;
       if (shiftKey) {
         selector.unionRange(t, row, col);
