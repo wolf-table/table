@@ -219,6 +219,8 @@ export default class Table {
 
   resize() {
     this._container.css({ height: this._height(), width: this._width() });
+    this._renderer.width(this._width());
+    this._renderer.height(this._height());
     this.render();
   }
 
