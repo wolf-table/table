@@ -1,6 +1,6 @@
 {
   "name": "@wolf-table/table",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "a web-based(canvas) javascript table",
   "main": "dist/table.min.js",
   "types": "dist/index.d.ts",
