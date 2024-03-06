@@ -1,4 +1,4 @@
-import WolfTable from './src';
+import WolfTable, { h } from './src';
 
 const t = WolfTable.create(
   '#table',
@@ -37,6 +37,21 @@ const t = WolfTable.create(
   })
   .onClick((cell, evt) => {
     // console.log('cell:', cell, evt);
+  })
+  .onContextmenu((cell, evt) => {
+    console.log('contetmenu:', cell);
+    const { x, y, width, height } = cell;
+    const content = h('div')
+      .css({ background: '#ddd', padding: '10px', 'z-index': '100' })
+      .css({
+        left: x,
+        top: y,
+        width,
+        height,
+        position: 'absolute',
+      });
+    content.html('---abc--');
+    t.container().append(content);
   })
   .render();
 

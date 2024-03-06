@@ -88,7 +88,7 @@ export type TableOptions = {
 
 export type MoveDirection = 'up' | 'down' | 'left' | 'right';
 
-export type EventName = 'click';
+export { HElement, h };
 
 export default class Table {
   // renderer options
@@ -539,6 +539,11 @@ export default class Table {
 
   onClick(handler: (cell: ViewportCell, evt: MouseEvent) => void) {
     this._emitter.on('click', handler);
+    return this;
+  }
+
+  onContextmenu(handler: (cell: ViewportCell, evt: MouseEvent) => void) {
+    this._emitter.on('contextmenu', handler);
     return this;
   }
 

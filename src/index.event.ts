@@ -12,7 +12,7 @@ export function initEvents(t: Table) {
     .on('mousemove', (evt) => mousemoveHandler(t, evt))
     .on('keydown', (evt) => keydownHandler(t, evt))
     .on('wheel.prevent', (evt) => wheelHandler(t, evt))
-    .on('contextmenu.prevent', (evt) => {})
+    .on('contextmenu.prevent', (evt) => contextmenuHandler(t, evt))
     .on('dblclick.prevent', () => {
       editor.reset(t);
     });
@@ -94,6 +94,21 @@ function wheelHandler(t: Table, evt: any) {
     if (_vScrollbar) {
       _vScrollbar.scrollBy(deltaY);
     }
+  }
+}
+
+function contextmenuHandler(t: Table, evt: any) {
+  const { _renderer, _editor, _emitter } = t;
+  const { viewport } = _renderer;
+
+  if (_editor) {
+    _editor.changed();
+  }
+
+  if (viewport) {
+    const { offsetX, offsetY } = evt;
+    const vcell = viewport.cellAt(offsetX, offsetY);
+    _emitter.emit('contextmenu', vcell, evt);
   }
 }
 
